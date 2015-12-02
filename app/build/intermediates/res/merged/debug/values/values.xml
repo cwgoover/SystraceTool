@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="icon_actions">
+        <item>Show Icon</item>
+        <item>Hide Icon</item>
+    </string-array>
+    <color name="background">#ff2e85a6</color>
+    <color name="btn_gb">#ff34495e</color>
+    <color name="btn_gb_press">#FF6B96C2</color>
+    <dimen name="btn_horizontal_padding">24dp</dimen>
+    <dimen name="btn_vertical_padding">12dp</dimen>
+    <dimen name="checkbox_margin">4dp</dimen>
+    <dimen name="github_size">160dp</dimen>
+    <dimen name="layout_horizontal_margin">16dp</dimen>
+    <dimen name="layout_vertical_margin">10dp</dimen>
+    <string name="action_about">Settings</string>
+    <string name="app_name">Systrace</string>
+    <string name="command_fail_toast">command fail!</string>
+    <string name="cpu_mode">put CPU in performance mode</string>
+    <string name="default_interval">15</string>
+    <string name="gpu_mode">put GPU in performance mode</string>
+    <string name="interval_unit">s + 15s (TOP)</string>
+    <string name="notif_show_text">Show hidden icon to catch systrace.</string>
+    <string name="notif_show_title">Click to show Systrace</string>
+    <string name="notif_ticker_text">Systrace is ready…</string>
+    <string name="path_toast">The output file is saved in the: </string>
+    <string name="running_toast">catching now, please wait~</string>
+    <string name="systrace_des">\t1. Tap on button to show float icon, and return to launcher;\n\t2. Click icon to start systrace, now do what you want to do!</string>
+    <string name="systrace_start">Start Service</string>
+    <string name="systrace_stop">Stop Service</string>
+    <string name="systrace_tips">Hint</string>
+    <string name="time_interval">Time Interval:</string>
+    <string name="unformat_time_interval">Time Interval is irregular!</string>
+    <style name="checkbox">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginLeft">4dp</item>
+        <item name="android:background">@null</item>
+        <item name="android:clickable">true</item>
+        <item name="android:longClickable">false</item>
+        <item name="android:checked">true</item>
+        <item name="android:paddingRight">@dimen/checkbox_margin</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textSize">15sp</item>
+    </style>
+    <style name="mainButton">
+        <item name="android:layout_width">185dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_gravity">center_horizontal</item>
+        <item name="android:paddingTop">@dimen/btn_vertical_padding</item>
+        <item name="android:paddingBottom">@dimen/btn_vertical_padding</item>
+        <item name="android:paddingLeft">@dimen/btn_horizontal_padding</item>
+        <item name="android:paddingRight">@dimen/btn_horizontal_padding</item>
+        <item name="android:background">@drawable/navy_button</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textSize">18sp</item>
+    </style>
+</resources>

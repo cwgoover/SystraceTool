@@ -1,0 +1,14 @@
+[
+    {
+        "merged": "/local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/build/intermediates/res/merged/debug/drawable-xhdpi-v4/github_logo.png",
+        "source": "/local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/res/drawable-xhdpi/github_logo.png"
+    },
+    {
+        "merged": "/local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/build/intermediates/res/merged/debug/drawable-xhdpi-v4/btn_assistivetouch_enable.png",
+        "source": "/local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/res/drawable-xhdpi/btn_assistivetouch_enable.png"
+    },
+    {
+        "merged": "/local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/build/intermediates/res/merged/debug/drawable-xhdpi-v4/btn_assistivetouch_disable.png",
+        "source": "/local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/res/drawable-xhdpi/btn_assistivetouch_disable.png"
+    }
+]

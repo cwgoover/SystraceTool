@@ -1,0 +1,91 @@
+-- Merging decision tree log ---
+manifest
+ADDED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml:2:1-47:12
+	android:sharedUserId
+		ADDED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml:6:5-45
+	xmlns:android
+		ADDED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml:2:11-69
+	package
+		ADDED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml:3:5-34
+		INJECTED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml
+		INJECTED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml
+	android:versionName
+		ADDED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml:5:5-30
+		INJECTED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml
+		INJECTED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml
+	android:versionCode
+		ADDED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml:4:5-28
+		INJECTED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml
+		INJECTED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml
+uses-sdk
+ADDED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml:9:5-11:41
+	android:targetSdkVersion
+		ADDED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml:11:9-38
+		INJECTED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml
+		INJECTED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml
+	android:minSdkVersion
+		ADDED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml:10:9-35
+		INJECTED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml
+		INJECTED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml
+uses-permission#android.permission.INTERNET
+ADDED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml:13:5-67
+	android:name
+		ADDED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml:13:22-64
+uses-permission#android.permission.MOUNT_UNMOUNT_FILESYSTEMS
+ADDED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml:14:5-84
+	android:name
+		ADDED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml:14:22-81
+uses-permission#android.permission.SYSTEM_ALERT_WINDOW
+ADDED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml:15:5-78
+	android:name
+		ADDED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml:15:22-75
+uses-permission#android.permission.VIBRATE
+ADDED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml:16:5-65
+	android:name
+		ADDED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml:16:22-63
+uses-permission#android.permission.WAKE_LOCK
+ADDED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml:17:5-68
+	android:name
+		ADDED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml:17:22-65
+uses-permission#android.permission.WRITE_EXTERNAL_STORAGE
+ADDED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml:18:5-81
+	android:name
+		ADDED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml:18:22-78
+application
+ADDED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml:20:5-45:19
+	android:label
+		ADDED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml:22:9-41
+	android:allowBackup
+		ADDED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml:21:9-35
+	android:icon
+		ADDED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml:23:9-45
+activity#com.jrdcom.systrace.StartAtraceActivity
+ADDED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml:25:9-36:20
+	android:screenOrientation
+		ADDED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml:30:13-49
+	android:label
+		ADDED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml:28:13-45
+	android:icon
+		ADDED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml:29:13-49
+	android:name
+		ADDED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml:26:13-48
+	android:launchMode
+		ADDED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml:27:13-43
+intent-filter#android.intent.action.MAIN
+ADDED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml:31:13-35:29
+action#android.intent.action.MAIN
+ADDED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml:32:17-69
+	android:name
+		ADDED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml:32:25-66
+service#com.jrdcom.systrace.service.AtraceService
+ADDED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml:38:9-44:19
+	android:enabled
+		ADDED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml:40:13-35
+	android:name
+		ADDED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml:39:13-50
+intent-filter#com.jrdcom.systrace.service.SystraceService
+ADDED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml:41:13-43:29
+action#com.jrdcom.systrace.service.SystraceService
+ADDED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml:42:17-86
+	android:name
+		ADDED from /local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/AndroidManifest.xml:42:25-83

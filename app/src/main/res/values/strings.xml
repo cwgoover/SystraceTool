@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Systrace</string>
+
+    <string name="systrace_tips">Hint</string>
+    <string name="systrace_des">\t1. Tap on button to show float icon, and return to launcher;\n\t2. Click icon to start systrace, now do what you want to do!</string>
+    <string name="systrace_start">Start Service</string>
+    <string name="systrace_stop">Stop Service</string>
+    <string name="notif_ticker_text">Systrace is ready&#8230;</string>
+    <string name="notif_show_title">Click to show Systrace</string>
+    <string name="notif_show_text">Show hidden icon to catch systrace.</string>
+    <string name="running_toast">catching now, please wait~</string>
+    <string name="command_fail_toast">command fail!</string>
+    <string name="unformat_time_interval">Time Interval is irregular!</string>
+    <string name="path_toast">The output file is saved in the: </string>
+    <string name="action_about">Settings</string>
+
+    <!-- for time interval -->
+    <string name="time_interval">Time Interval:</string>
+    <string name="default_interval">15</string>
+    <string name="interval_unit">s + 15s (TOP)</string>
+
+    <string name="cpu_mode">put CPU in performance mode</string>
+    <string name="gpu_mode">put GPU in performance mode</string>
+</resources>

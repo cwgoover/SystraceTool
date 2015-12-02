@@ -1,0 +1,294 @@
+[
+    {
+        "outputFile": "/local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/build/intermediates/res/merged/debug/values-zh-rCN/values-zh-rCN.xml",
+        "map": [
+            {
+                "to": {
+                    "startLine": 2,
+                    "startColumn": 4,
+                    "startOffset": 55,
+                    "endLine": 5,
+                    "endColumn": 19,
+                    "endOffset": 161
+                },
+                "from": {
+                    "file": "/local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/res/values-zh-rCN/arrays.xml",
+                    "position": {
+                        "startLine": 18,
+                        "startColumn": 4,
+                        "startOffset": 730,
+                        "endLine": 21,
+                        "endColumn": 19,
+                        "endOffset": 836
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 6,
+                    "startColumn": 4,
+                    "startOffset": 166,
+                    "endColumn": 43,
+                    "endOffset": 205
+                },
+                "from": {
+                    "file": "/local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/res/values-zh-rCN/strings.xml",
+                    "position": {
+                        "startLine": 11,
+                        "startColumn": 4,
+                        "startOffset": 509,
+                        "endColumn": 43,
+                        "endOffset": 548
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 7,
+                    "startColumn": 4,
+                    "startOffset": 210,
+                    "endColumn": 45,
+                    "endOffset": 251
+                },
+                "from": {
+                    "file": "/local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/res/values-zh-rCN/strings.xml",
+                    "position": {
+                        "startLine": 2,
+                        "startColumn": 4,
+                        "startOffset": 55,
+                        "endColumn": 45,
+                        "endOffset": 96
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 8,
+                    "startColumn": 4,
+                    "startOffset": 256,
+                    "endColumn": 52,
+                    "endOffset": 304
+                },
+                "from": {
+                    "file": "/local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/res/values-zh-rCN/strings.xml",
+                    "position": {
+                        "startLine": 9,
+                        "startColumn": 4,
+                        "startOffset": 401,
+                        "endColumn": 52,
+                        "endOffset": 449
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 9,
+                    "startColumn": 4,
+                    "startOffset": 309,
+                    "endColumn": 47,
+                    "endOffset": 352
+                },
+                "from": {
+                    "file": "/local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/res/values-zh-rCN/strings.xml",
+                    "position": {
+                        "startLine": 17,
+                        "startColumn": 4,
+                        "startOffset": 781,
+                        "endColumn": 47,
+                        "endOffset": 824
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 10,
+                    "startColumn": 4,
+                    "startOffset": 357,
+                    "endColumn": 55,
+                    "endOffset": 408
+                },
+                "from": {
+                    "file": "/local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/res/values-zh-rCN/strings.xml",
+                    "position": {
+                        "startLine": 18,
+                        "startColumn": 4,
+                        "startOffset": 829,
+                        "endColumn": 55,
+                        "endOffset": 880
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 11,
+                    "startColumn": 4,
+                    "startOffset": 413,
+                    "endColumn": 79,
+                    "endOffset": 488
+                },
+                "from": {
+                    "file": "/local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/res/values-zh-rCN/strings.xml",
+                    "position": {
+                        "startLine": 13,
+                        "startColumn": 4,
+                        "startOffset": 621,
+                        "endColumn": 79,
+                        "endOffset": 696
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 12,
+                    "startColumn": 4,
+                    "startOffset": 493,
+                    "endColumn": 67,
+                    "endOffset": 556
+                },
+                "from": {
+                    "file": "/local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/res/values-zh-rCN/strings.xml",
+                    "position": {
+                        "startLine": 12,
+                        "startColumn": 4,
+                        "startOffset": 553,
+                        "endColumn": 67,
+                        "endOffset": 616
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 13,
+                    "startColumn": 4,
+                    "startOffset": 561,
+                    "endColumn": 54,
+                    "endOffset": 611
+                },
+                "from": {
+                    "file": "/local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/res/values-zh-rCN/strings.xml",
+                    "position": {
+                        "startLine": 10,
+                        "startColumn": 4,
+                        "startOffset": 454,
+                        "endColumn": 54,
+                        "endOffset": 504
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 14,
+                    "startColumn": 4,
+                    "startOffset": 616,
+                    "endColumn": 58,
+                    "endOffset": 670
+                },
+                "from": {
+                    "file": "/local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/res/values-zh-rCN/strings.xml",
+                    "position": {
+                        "startLine": 8,
+                        "startColumn": 4,
+                        "startOffset": 336,
+                        "endColumn": 64,
+                        "endOffset": 396
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 15,
+                    "startColumn": 4,
+                    "startOffset": 675,
+                    "endColumn": 92,
+                    "endOffset": 763
+                },
+                "from": {
+                    "file": "/local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/res/values-zh-rCN/strings.xml",
+                    "position": {
+                        "startLine": 5,
+                        "startColumn": 4,
+                        "startOffset": 148,
+                        "endColumn": 92,
+                        "endOffset": 236
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 16,
+                    "startColumn": 4,
+                    "startOffset": 768,
+                    "endColumn": 47,
+                    "endOffset": 811
+                },
+                "from": {
+                    "file": "/local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/res/values-zh-rCN/strings.xml",
+                    "position": {
+                        "startLine": 6,
+                        "startColumn": 4,
+                        "startOffset": 241,
+                        "endColumn": 47,
+                        "endOffset": 284
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 17,
+                    "startColumn": 4,
+                    "startOffset": 816,
+                    "endColumn": 46,
+                    "endOffset": 858
+                },
+                "from": {
+                    "file": "/local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/res/values-zh-rCN/strings.xml",
+                    "position": {
+                        "startLine": 7,
+                        "startColumn": 4,
+                        "startOffset": 289,
+                        "endColumn": 46,
+                        "endOffset": 331
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 18,
+                    "startColumn": 4,
+                    "startOffset": 863,
+                    "endColumn": 45,
+                    "endOffset": 904
+                },
+                "from": {
+                    "file": "/local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/res/values-zh-rCN/strings.xml",
+                    "position": {
+                        "startLine": 4,
+                        "startColumn": 4,
+                        "startOffset": 102,
+                        "endColumn": 45,
+                        "endOffset": 143
+                    }
+                }
+            },
+            {
+                "to": {
+                    "startLine": 19,
+                    "startColumn": 4,
+                    "startOffset": 909,
+                    "endColumn": 47,
+                    "endOffset": 952
+                },
+                "from": {
+                    "file": "/local/caoTing/workspaces/AndroidStudioProjects/JrdSystrace/app/src/main/res/values-zh-rCN/strings.xml",
+                    "position": {
+                        "startLine": 16,
+                        "startColumn": 4,
+                        "startOffset": 733,
+                        "endColumn": 47,
+                        "endOffset": 776
+                    }
+                }
+            }
+        ]
+    }
+]

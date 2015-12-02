@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <style name="mainButton" >
+        <item name="android:layout_width">185dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_gravity">center_horizontal</item>
+        <item name="android:paddingTop">@dimen/btn_vertical_padding</item>
+        <item name="android:paddingBottom">@dimen/btn_vertical_padding</item>
+        <item name="android:paddingLeft">@dimen/btn_horizontal_padding</item>
+        <item name="android:paddingRight">@dimen/btn_horizontal_padding</item>
+        <item name="android:background">@drawable/navy_button</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textSize">18sp</item>
+    </style>
+
+    <style name="checkbox" >
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginLeft">4dp</item>
+        <item name="android:background">@null</item>
+        <item name="android:clickable">true</item>
+        <item name="android:longClickable">false</item>
+        <item name="android:checked">true</item>
+        <item name="android:paddingRight">@dimen/checkbox_margin</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textSize">15sp</item>
+    </style>
+
+</resources>
