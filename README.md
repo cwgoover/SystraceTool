@@ -1,3 +1,3 @@
 # SystraceTool
 
-![My image](cwgoover.github.com/repository/img/systraceTool_screenshot.png)
+![My image](http://cwgoover.github.io/repository/img/systraceTool_screenshot.png)
