@@ -4,7 +4,7 @@
     <string name="app_name">Systrace</string>
 
     <string name="systrace_tips">Hint</string>
-    <string name="systrace_des">\t1. Tap on button to show float icon, and return to launcher;\n\t2. Click icon to start systrace, now do what you want to do!</string>
+    <string name="systrace_des">\t1. Tap on button to show float icon, and return to launcher;\n\t2. Click icon to start systrace, now do what you want to do!\n\t3. Stop actions as it vibrated.</string>
     <string name="systrace_start">Start Service</string>
     <string name="systrace_stop">Stop Service</string>
     <string name="notif_ticker_text">Systrace is ready&#8230;</string>
@@ -23,4 +23,12 @@
 
     <string name="cpu_mode">put CPU in performance mode</string>
     <string name="gpu_mode">put GPU in performance mode</string>
+    <string name="descrip_alert_message">Enter your Description:</string>
+    <string name="descrip_alert_title">Action Description</string>
+    <string name="alert_cancel">Cancel</string>
+    <string name="alert_ok">OK</string>
+    <string name="dlg_write_title">The description of this trace\'s user behavior is below:\n\n</string>
+    <string name="menu_show_dialog">Show Dialog</string>
+    <string name="notify_show_dialog_title">Click to add action\'s description</string>
+    <string name="notify_show_dialog_text">Please add the action\'s description for this trace file</string>
 </resources>

@@ -17,4 +17,9 @@
     <string name="time_interval">执行时间:</string>
     <string name="default_interval">15</string>
     <string name="interval_unit">秒 + 15秒 (TOP)</string>
+    <string name="descrip_alert_message">Enter your Description:</string>
+    <string name="alert_cancel">Cancel</string>
+    <string name="alert_ok">OK</string>
+    <string name="dlg_write_title">The description of this trace\'s user behavior is below:\n</string>
+    <string name="menu_show_dialog">Show Dialog</string>
 </resources>

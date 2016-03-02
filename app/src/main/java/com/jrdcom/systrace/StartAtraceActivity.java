@@ -21,7 +21,6 @@ import android.widget.Spinner;
 
 import com.jrdcom.systrace.service.AtraceService;
 import com.jrdcom.systrace.toolbox.CommandUtil;
-import com.jrdcom.systrace.R;
 
 public class StartAtraceActivity extends Activity
             implements OnClickListener, AtraceService.Callback {
@@ -31,6 +30,7 @@ public class StartAtraceActivity extends Activity
 
     public static final String TIME_INTERVAL = "time";
     public static final String ICON_SHOW = "iconShow";
+    public static final String MENU_SHOW_DIALOG = "showDialog";
 
     Button mStartBtn;
     Button mStopBtn;
@@ -110,16 +110,19 @@ public class StartAtraceActivity extends Activity
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
 
+        // config show dialog menu
+        menu.findItem(R.id.action_show_dialog).setChecked(mUtil.getBooleanState(MENU_SHOW_DIALOG, false));
+
+        // config Spinner menu
         final ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
                         this, R.array.icon_actions, android.R.layout.simple_list_item_1);
-
         MenuItem spinnerItem = menu.findItem(R.id.menu_spinner);
         View view = spinnerItem.getActionView();
         if (view instanceof Spinner) {
             final Spinner spinner = (Spinner) view;
             spinner.setAdapter(adapter);
             // change spinner's default value
-            if (mUtil.getBooleanState(ICON_SHOW) == false) {
+            if (!mUtil.getBooleanState(ICON_SHOW, true)) {
                 spinner.setSelection(1);
             }
             spinner.setOnItemSelectedListener(new Spinner.OnItemSelectedListener() {
@@ -137,7 +140,6 @@ public class StartAtraceActivity extends Activity
                                     break;
                             }
                     }
-                    return;
                 }
 
                 @Override
@@ -145,6 +147,18 @@ public class StartAtraceActivity extends Activity
             });
         }
         return super.onCreateOptionsMenu(menu);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_show_dialog:
+                mUtil.setBooleanState(MENU_SHOW_DIALOG, !item.isChecked());
+                item.setChecked(!item.isChecked());
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
     }
 
     @Override

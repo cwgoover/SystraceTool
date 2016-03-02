@@ -1,10 +1,16 @@
 package com.jrdcom.systrace.toolbox;
 
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
+import android.util.Log;
+
+import com.jrdcom.systrace.StartAtraceActivity;
+
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -15,17 +21,9 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
 
-import android.content.Context;
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
-import android.util.Log;
-
-import com.jrdcom.systrace.StartAtraceActivity;
-import com.jrdcom.systrace.service.AtraceService;
-
 public class CommandUtil {
     public static final String TAG = StartAtraceActivity.TAG + ".c";
-    public static final boolean DEBUG = Log.isLoggable(TAG, Log.DEBUG) || true;
+    public static final boolean DEBUG = Log.isLoggable(TAG, Log.DEBUG);
 
     public static final String EXIT = "exit\n";
     private static final String OUTPUT_FILE_PREFIX = "systrace_";
@@ -72,9 +70,9 @@ public class CommandUtil {
         mPerferences.edit().putBoolean(key, val).commit();
     }
 
-    public boolean getBooleanState(String key) {
+    public boolean getBooleanState(String key, boolean  defaultValue) {
         // the default true value is special for the "ICON_SHOW"
-        return mPerferences.getBoolean(key, true);
+        return mPerferences.getBoolean(key, defaultValue);
     }
 
     public File createFile(String path) {
@@ -89,8 +87,7 @@ public class CommandUtil {
         String fileName = OUTPUT_FILE_PREFIX + time + OUTPUT_FILE_SUFFIX;
         myLogger(TAG, "createFile: name=" + fileName);
 
-        File file = new File(filePath, fileName);
-        return file;
+        return new File(filePath, fileName);
     }
 
     public void deleteFile(String path) {

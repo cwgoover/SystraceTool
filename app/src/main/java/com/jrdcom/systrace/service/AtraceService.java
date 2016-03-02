@@ -1,14 +1,8 @@
 
 package com.jrdcom.systrace.service;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import android.animation.ValueAnimator;
 import android.app.Notification;
-import android.app.Notification.Builder;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -17,7 +11,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
-import android.content.res.Resources;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.os.Binder;
@@ -43,11 +36,17 @@ import com.jrdcom.systrace.R;
 import com.jrdcom.systrace.StartAtraceActivity;
 import com.jrdcom.systrace.toolbox.CommandUtil;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 public class AtraceService extends Service implements OnSharedPreferenceChangeListener {
 
     public static final String TAG = StartAtraceActivity.TAG + ".s";
 
     public static final int ONGOING_NOTIFICATION_ID = 2018;
+    public static final int DIALOG_NOTIFICATION_ID = 2015;
     public static final int ANIMATION_DURATION = 350;
     public static final int LONG_CLICK_DURATION = 1000;
     public static final String DEFAULT_SYSTRACE_SUBDIR = "/jrdSystrace";
@@ -75,7 +74,7 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
     // catch ps info
     private static final String[] PS_CMD = {"/system/bin/ps"};
     // catch top info
-    private static final String[] TOP_CMD = {"/system/bin/top", "-t", "-d", "1", "-m", "15", "-n", "10"};
+    private static final String[] TOP_CMD = {"/system/bin/top", "-t", "-d", "1", "-m", "25", "-n", "10"};
 
     private static final String[] RUN_ATRACE_0 = {"/system/bin/atrace", "-z", "-t"};
     private static final String[] RUN_ATRACE_1 = {"gfx", "input", "view", "am", "wm", "sm", "res",
@@ -115,7 +114,7 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
     private final Handler mHandler = new Handler();
 
     public interface Callback {
-        public void notifyChange(boolean changed);
+        void notifyChange(boolean changed);
     }
 
     @Override
@@ -143,7 +142,7 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
         prepareProperty();
 
         sDesiredStoragePath = Environment.getExternalStorageDirectory().getPath() + DEFAULT_SYSTRACE_SUBDIR;
-        sIconShowing = mCommandUtil.getBooleanState(StartAtraceActivity.ICON_SHOW);
+        sIconShowing = mCommandUtil.getBooleanState(StartAtraceActivity.ICON_SHOW, true);
 
         /** get Activity's widget in the service, used LayoutInflater instance.
          *  but it's the bad design, you should interact with UI in Activity not Service */
@@ -193,7 +192,7 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
 //            CommandUtil.myLogger(TAG, "onSharedPreferenceChanged: mTimeInterval=" + mTimeInterval);
 //        }
         if (key.equals(StartAtraceActivity.ICON_SHOW)) {
-            sIconShowing = mCommandUtil.getBooleanState(key);
+            sIconShowing = mCommandUtil.getBooleanState(key, true);
             CommandUtil.myLogger(TAG, "onSharedPreferenceChanged: sIconShowing=" + sIconShowing);
         }
     }
@@ -216,7 +215,7 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
         }
         // Gravity.BOTTOM can avoid icon bouncing whether status bar is hidden.
         // But it makes the Y coordinate REVERSE!
-        params.gravity = Gravity.LEFT | Gravity.BOTTOM;
+        params.gravity = Gravity.START | Gravity.BOTTOM;
 
         Display display = mWindowManager.getDefaultDisplay();
         Point size = new Point();
@@ -299,7 +298,7 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
                                 }
                                 CommandUtil.myLogger(TAG, "catch systrace now!");
                                 sAtraceRunning = true;
-                                freezeIcon(true);
+                                freezeIcon(true, false);
                                 runAtrace();
                             } else {
                                 showToast(runningToast);
@@ -373,17 +372,27 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
         }
     }
 
-    private void freezeIcon(boolean freeze) {
+    private void freezeIcon(boolean freeze, boolean finished) {
         if (freeze) {
             if (sIconShowing) {
-                mFloatView.setImageResource(R.drawable.btn_assistivetouch_disable);
-                mFloatView.setAlpha(0.5f);
-                mFloatView.setEnabled(false);
+                if (finished) {
+                    // Vibrate for 100 milliseconds
+                    mVibrator.vibrate(100);
+                    mFloatView.setImageResource(R.drawable.btn_assistivetouch_enable);
+                    mFloatView.setAlpha(0.5f);
+                    mFloatView.setEnabled(false);
+                } else {
+                    mFloatView.setImageResource(R.drawable.btn_assistivetouch_disable);
+                    mFloatView.setAlpha(0.5f);
+                    mFloatView.setEnabled(false);
+                }
             } else {
                 mFloatView.setVisibility(View.GONE);
             }
             updateActivityUI(false);
         } else {
+            // Vibrate for 100 milliseconds
+            mVibrator.vibrate(100);
             if (sIconShowing) {
                 mFloatView.setImageResource(R.drawable.btn_assistivetouch_enable);
                 mFloatView.setAlpha(1f);
@@ -444,7 +453,8 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
 
                 // set heap size of the atrace
                 mAtraceCmd.add("-b");
-                String spHeapSize = mCommandUtil.exec(SP_HEAP_SIZE).trim();
+                String spHeapSize = mCommandUtil.exec(SP_HEAP_SIZE);
+                if (spHeapSize != null) spHeapSize = spHeapSize.trim();
                 if (spHeapSize != null && !spHeapSize.isEmpty() && !spHeapSize.equals("0")) {
                     CommandUtil.myLogger(TAG, "set heap size 0f system property:" + spHeapSize);
                     mAtraceCmd.add(spHeapSize);
@@ -466,6 +476,14 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
                 final boolean isOK = mCommandUtil.runCommand(mAtraceCmd.toArray(command), file);
 
                 if (isOK) {
+                    // finish caught, so feedback this state.
+                    mHandler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            freezeIcon(true, true);
+                        }
+                    });
+
                     CommandUtil.myLogger(TAG, "runAtrace: success, now catch addition info!");
                     if (ENABLE_PS_CMD_RESQ || sShowPsInfo) {
                         String ps_file = file.getAbsolutePath() + ".ps";
@@ -481,11 +499,11 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
                     @Override
                     public void run() {
                         sAtraceRunning = false;
-                        freezeIcon(false);
+                        freezeIcon(false, true);
                         if (!isOK) {
                             showToast(failToast);
                         } else {
-                            showLongToast(pathToast + sDesiredStoragePath + "/");
+                            showDescriptionDialog(file.getAbsolutePath() + ".txt");
                         }
                     }
                 });
@@ -493,6 +511,23 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
         });
         atraceThread.setName("atraceThread");
         atraceThread.start();
+    }
+
+    private void showDescriptionDialog(String file) {
+        boolean isShow = mCommandUtil.getBooleanState(StartAtraceActivity.MENU_SHOW_DIALOG, false);
+        String toast = pathToast + sDesiredStoragePath + "/";
+        if (isShow) {
+            Intent intent = new Intent(getApplicationContext(), DescriptionDialogActivity.class);
+            intent.putExtra(DescriptionDialogActivity.FILE_KEY, file);
+            intent.putExtra(DescriptionDialogActivity.TOAST_KEY, toast);
+            // IMPORTANT: otherwise, your activity will be shown behind dialog whether what session you were in.
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+
+            startActivity(intent);
+//            createNotification();
+        } else {
+            showLongToast(toast);
+        }
     }
 
     // uses dp instead of px
@@ -520,17 +555,21 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
 
     private void createNotification() {
         Context cx = getApplicationContext();
-        Resources res = getApplicationContext().getResources();
-        Intent notificationIntent = new Intent(cx, AtraceService.class);
-        PendingIntent pendingIntent = PendingIntent.getService(cx, 0, notificationIntent, 0);
+//        Resources res = getApplicationContext().getResources();
+//        Intent notificationIntent = new Intent(cx, AtraceService.class);
+//        PendingIntent pendingIntent = PendingIntent.getService(cx, 0, notificationIntent, 0);
+        Intent notificationIntent = new Intent(cx, DescriptionDialogActivity.class);
+        notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
+        PendingIntent pendingIntent = PendingIntent.getActivity(cx, 0, notificationIntent,
+                PendingIntent.FLAG_CANCEL_CURRENT);
 
         Notification.Builder builder = new Notification.Builder(cx)
             .setSmallIcon(R.drawable.btn_assistivetouch_enable)
-            .setContentTitle(res.getString(R.string.notif_show_title))
-            .setContentText(res.getString(R.string.notif_show_text));
+            .setContentTitle(getString(R.string.notify_show_dialog_title))
+            .setContentText(getString(R.string.notify_show_dialog_text));
         builder.setContentIntent(pendingIntent);
         builder.setAutoCancel(true);
-        mNotificationManager.notify(ONGOING_NOTIFICATION_ID, builder.build());
+        mNotificationManager.notify(DIALOG_NOTIFICATION_ID, builder.build());
     }
 
     private void prepareProperty() {
@@ -539,7 +578,7 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
             public void run() {
                 try {
                     String info = mCommandUtil.exec(SP_CMD_PS_FLAG).trim();
-                    sShowPsInfo = Integer.parseInt(info) != 0 ? true : false;
+                    sShowPsInfo = Integer.parseInt(info) != 0;
                     CommandUtil.myLogger(TAG, "prepareProperty: sShowPsInfo= " + sShowPsInfo);
                 } catch (NumberFormatException e) {
                     sShowPsInfo = false;
