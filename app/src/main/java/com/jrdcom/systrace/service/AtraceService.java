@@ -161,10 +161,9 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
         // set this as foreground service
         setPriorityToForeground(true);
 
-        // keep screen on when icon is showing.
+        // prepare wake lock to keep screen on while catching systrace
         PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
         mWakeLock = powerManager.newWakeLock(PowerManager.SCREEN_DIM_WAKE_LOCK, "MyWakelockTag");
-        mWakeLock.acquire();
     }
 
     @Override
@@ -174,7 +173,9 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
         if (mFloatView != null) {
             mWindowManager.removeView(mFloatView);
         }
-        mWakeLock.release();
+        if (mWakeLock.isHeld()) {
+            mWakeLock.release();
+        }
         setPriorityToForeground(false);
 //        mNotificationManager.cancel(ONGOING_NOTIFICATION_ID);
     }
@@ -267,7 +268,6 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
                         // Gravity.BOTTOM makes the Y coordinate REVERSE! So we should *minus*
                         // the relative value to keep the same direction. (Gravity.TOP use *plus*)
                         paramsF.y = initialY - (int) (event.getRawY() - initialTouchY);
-
                         CommandUtil.myLogger(TAG, "ACTION_MOVE:"
                                 + " initialX=" + initialX
                                 + ", initialTouchX=" + initialTouchX
@@ -446,6 +446,9 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
         Thread atraceThread = new Thread(new Runnable() {
             @Override
             public void run() {
+                // keep the screen on while catching systrace
+                mWakeLock.acquire();
+
                 // prepare command
                 mAtraceCmd.clear();
                 mAtraceCmd.addAll(mPreAtrace);
@@ -507,6 +510,9 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
                         }
                     }
                 });
+
+                // release wake lock
+                mWakeLock.release();
             }
         });
         atraceThread.setName("atraceThread");
@@ -578,8 +584,13 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
             public void run() {
                 try {
                     String info = mCommandUtil.exec(SP_CMD_PS_FLAG).trim();
-                    sShowPsInfo = Integer.parseInt(info) != 0;
-                    CommandUtil.myLogger(TAG, "prepareProperty: sShowPsInfo= " + sShowPsInfo);
+                    // if info has error number format, return false
+                    if (info != null && !info.isEmpty()) {
+                        sShowPsInfo = Integer.parseInt(info) != 0;
+                        CommandUtil.myLogger(TAG, "prepareProperty: sShowPsInfo= " + sShowPsInfo);
+                    } else {
+                        sShowPsInfo = false;
+                    }
                 } catch (NumberFormatException e) {
                     sShowPsInfo = false;
                     CommandUtil.myLogger(TAG, "Error for prepareProperty: EXCEPTION!");
