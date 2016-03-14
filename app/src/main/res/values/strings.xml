@@ -4,7 +4,7 @@
     <string name="app_name">Systrace</string>
 
     <string name="systrace_tips">Hint</string>
-    <string name="systrace_des">\t1. Tap on button to show float icon, and return to launcher;\n\t2. Click icon to start systrace, now do what you want to do!\n\t3. Stop actions as it vibrated.</string>
+    <string name="systrace_des">\t1. Show float icon &amp; click icon before operations;\n\t2. Stop action as it vibrated.\n\t3. The maximum interval time is 30s</string>
     <string name="systrace_start">Start Service</string>
     <string name="systrace_stop">Stop Service</string>
     <string name="notif_ticker_text">Systrace is ready&#8230;</string>

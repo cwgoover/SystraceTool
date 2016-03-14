@@ -13,11 +13,14 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.jrdcom.systrace.service.AtraceService;
 import com.jrdcom.systrace.toolbox.CommandUtil;
@@ -72,7 +75,18 @@ public class StartAtraceActivity extends Activity
             public void afterTextChanged(Editable s) {
                 String time = mTimeInterval.getText().toString();
                 CommandUtil.myLogger(TAG, "EditText change, the time=" + time);
-                mUtil.setTimeInterval(TIME_INTERVAL, time);
+                if (time.isEmpty() || time.equals("")) {
+                    // Instead of try/catch for parseInt method.
+                    mUtil.setTimeInterval(TIME_INTERVAL, time);
+                } else if(Integer.parseInt(time) <= 30) {
+                    // The maximum time is 30 seconds
+                    mUtil.setTimeInterval(TIME_INTERVAL, time);
+                } else {
+                    // shake EditText & clear numbers & show toast
+                    mTimeInterval.setText("");
+                    shakeEditText();
+                    Toast.makeText(getApplicationContext(), "Wrong number!", Toast.LENGTH_SHORT).show();
+                }
             }
 
             @Override
@@ -189,6 +203,11 @@ public class StartAtraceActivity extends Activity
         mStartBtn.setEnabled(enable);
         mStopBtn.setEnabled(enable);
         mTimeInterval.setEnabled(enable);
+    }
+
+    private void shakeEditText() {
+        Animation animationShake = AnimationUtils.loadAnimation(this, R.anim.shake);
+        mTimeInterval.startAnimation(animationShake);
     }
 
     private final ServiceConnection connection = new ServiceConnection() {

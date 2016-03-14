@@ -71,9 +71,9 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
     private static final String[] SP_CMD_PS_FLAG = {"getprop", "persist.atrace.ps"};
     // SystemProperty: heap size
     private static final String[] SP_HEAP_SIZE = {"getprop", "persist.atrace.heapsize"};
-    // catch ps info
+    // capture ps info
     private static final String[] PS_CMD = {"/system/bin/ps"};
-    // catch top info
+    // capture top info
     private static final String[] TOP_CMD = {"/system/bin/top", "-t", "-d", "1", "-m", "25", "-n", "10"};
 
     private static final String[] RUN_ATRACE_0 = {"/system/bin/atrace", "-z", "-t"};
@@ -492,8 +492,12 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
                         String ps_file = file.getAbsolutePath() + ".ps";
                         mCommandUtil.runCommand(PS_CMD, new File(ps_file));
                     }
+                    // capture top info from system device
                     String top_file = file.getAbsolutePath() + ".top";
                     mCommandUtil.runCommand(TOP_CMD, new File(top_file));
+                    // TODO: capture meminfo from system device
+                    String meminfo = file.getAbsolutePath() + ".mem";
+//                    mCommandUtil.runCommand(MEM_CMD, new File(meminfo));
                 } else {
                     mCommandUtil.deleteFile(file.toString());
                 }
