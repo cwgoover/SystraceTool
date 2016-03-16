@@ -2,6 +2,8 @@
 package com.jrdcom.systrace.service;
 
 import android.animation.ValueAnimator;
+import android.app.ActivityManager;
+import android.app.ActivityManager.MemoryInfo;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
@@ -14,6 +16,8 @@ import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.os.Binder;
+import android.os.Build;
+import android.os.Debug;
 import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
@@ -32,6 +36,7 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.Toast;
 
+import com.jaredrummler.android.processes.ProcessManager;
 import com.jrdcom.systrace.R;
 import com.jrdcom.systrace.StartAtraceActivity;
 import com.jrdcom.systrace.toolbox.CommandUtil;
@@ -39,7 +44,10 @@ import com.jrdcom.systrace.toolbox.CommandUtil;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 public class AtraceService extends Service implements OnSharedPreferenceChangeListener {
 
@@ -78,9 +86,9 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
 
     private static final String[] RUN_ATRACE_0 = {"/system/bin/atrace", "-z", "-t"};
     private static final String[] RUN_ATRACE_1 = {"gfx", "input", "view", "am", "wm", "sm", "res",
-                                                    "dalvik", "sched", "freq", "app", "power",
-                                                    "hal", "rs", "webview", "audio", "video", "camera",
-                                                    "bionic", "idle", "load"};
+            "dalvik", "sched", "freq", "app", "power",
+            "hal", "rs", "webview", "audio", "video", "camera",
+            "bionic", "idle", "load"};
 
     private static final String HEAP_SIZE_LOW = "2048";     // 2MB
     private static final String HEAP_SIZE_MEDIUM = "5120";    // 5MB
@@ -108,6 +116,7 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
     String mTimeInterval;
     static boolean sShowPsInfo;
 
+    private ActivityManager mActivityManager;
     private final UIBinder mBinder = new UIBinder();
     private Callback mCallback;
     private CommandUtil mCommandUtil;
@@ -131,6 +140,7 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
         failToast = getApplication().getResources().getString(R.string.command_fail_toast);
         pathToast = getApplication().getResources().getString(R.string.path_toast);
 
+        mActivityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
         SharedPreferences mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
         mPrefs.registerOnSharedPreferenceChangeListener(this);
 
@@ -180,14 +190,15 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
 //        mNotificationManager.cancel(ONGOING_NOTIFICATION_ID);
     }
 
-    /** If EditText changes its value, it can fire at the same time. But you must keep
-     *  the service running, that is, the float icon displays.
-     *  If user changed the time EditText first, and then open float icon, it will fail
-     *  to get mTimeInterval.
+    /**
+     * If EditText changes its value, it can fire at the same time. But you must keep
+     * the service running, that is, the float icon displays.
+     * If user changed the time EditText first, and then open float icon, it will fail
+     * to get mTimeInterval.
      */
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
-            String key) {
+                                          String key) {
 //        if (key.equals(StartAtraceActivity.TIME_INTERVAL)) {
 //            mTimeInterval = mCommandUtil.getTimeInterval(key);
 //            CommandUtil.myLogger(TAG, "onSharedPreferenceChanged: mTimeInterval=" + mTimeInterval);
@@ -418,7 +429,7 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
      * To create a foreground service you have to call startForeground(...) method
      * from the Service itself passing the id of the notification and the Notification
      * object itself. You can use the id if you want to update the notification later.
-     *
+     * <p/>
      * developer.android.com/guide/components/services.html#Foreground
      */
     private void setPriorityToForeground(boolean foreground) {
@@ -427,9 +438,9 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
             PendingIntent pendingIntent = PendingIntent.getActivity(this, 0, notificationIntent, 0);
 
             Notification.Builder builder = new Notification.Builder(this)
-            .setSmallIcon(R.drawable.ic_launcher)
-            .setContentTitle(getResources().getString(R.string.notif_show_title))
-            .setContentText(getResources().getString(R.string.notif_show_text));
+                    .setSmallIcon(R.drawable.ic_launcher)
+                    .setContentTitle(getResources().getString(R.string.notif_show_title))
+                    .setContentText(getResources().getString(R.string.notif_show_text));
             builder.setContentIntent(pendingIntent);
             builder.setOngoing(true);
             startForeground(ONGOING_NOTIFICATION_ID, builder.build());
@@ -488,16 +499,19 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
                     });
 
                     CommandUtil.myLogger(TAG, "runAtrace: success, now catch addition info!");
+                    // capture ps info from system device
                     if (ENABLE_PS_CMD_RESQ || sShowPsInfo) {
                         String ps_file = file.getAbsolutePath() + ".ps";
                         mCommandUtil.runCommand(PS_CMD, new File(ps_file));
                     }
+
                     // capture top info from system device
                     String top_file = file.getAbsolutePath() + ".top";
                     mCommandUtil.runCommand(TOP_CMD, new File(top_file));
-                    // TODO: capture meminfo from system device
+
+                    // capture meminfo from system device
                     String meminfo = file.getAbsolutePath() + ".mem";
-//                    mCommandUtil.runCommand(MEM_CMD, new File(meminfo));
+                    captureMeminfo(meminfo);
                 } else {
                     mCommandUtil.deleteFile(file.toString());
                 }
@@ -510,7 +524,7 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
                         if (!isOK) {
                             showToast(failToast);
                         } else {
-                            showDescriptionDialog(file.getAbsolutePath() + ".txt");
+                            showDescriptionDialogOrToast(file.getAbsolutePath() + ".txt");
                         }
                     }
                 });
@@ -523,7 +537,55 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
         atraceThread.start();
     }
 
-    private void showDescriptionDialog(String file) {
+    private void captureMeminfo(String meminfoFile) {
+        MemoryInfo memInfo = new ActivityManager.MemoryInfo();
+        mActivityManager.getMemoryInfo(memInfo);
+
+        // StringBuilder is faster than StringBuffer because StringBuffer is synchronized, StringBuilder is not.
+        StringBuilder sb = new StringBuilder();
+        sb.append("Applications Memory Usage (kB):\n");
+        sb.append(" TotalMem:   ").append(roundToKB(memInfo.totalMem) ).append(" kB\n");
+        sb.append(" AvailMem:   ").append(roundToKB(memInfo.availMem)).append(" kB\n");
+        sb.append(" Threshold:  ").append(roundToKB(memInfo.threshold)).append(" kB\n");
+        sb.append(" LowMemory:  ").append(memInfo.lowMemory).append("\n\n");
+
+        List<ActivityManager.RunningAppProcessInfo> runningAppProcesses;
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+            // getRunningAppProcesses() returns my application package only in Android 5.1.1 and above
+            runningAppProcesses = mActivityManager.getRunningAppProcesses();
+        } else {
+            // package: https://github.com/jaredrummler/AndroidProcesses
+            // System apps aren't visible because they have a higher SELinux context than third party apps.
+            runningAppProcesses = ProcessManager.getRunningAppProcessInfo(getApplicationContext());
+        }
+
+        Map<Integer, String> pidMap = new TreeMap<Integer, String>();
+        for (ActivityManager.RunningAppProcessInfo runningAppProcessInfo : runningAppProcesses) {
+            pidMap.put(runningAppProcessInfo.pid, runningAppProcessInfo.processName);
+        }
+
+        Collection<Integer> keys = pidMap.keySet();
+
+        for (int key : keys) {
+            int pids[] = new int[1];
+            pids[0] = key;
+            Debug.MemoryInfo[] memoryInfoArray = mActivityManager.getProcessMemoryInfo(pids);
+            for (Debug.MemoryInfo pidMemoryInfo : memoryInfoArray) {
+                sb.append(String.format("\n** MEMINFO in pid %d [%s] **\n", pids[0], pidMap.get(pids[0])));
+                sb.append(" TotalPss: ").append(pidMemoryInfo.getTotalPss()).append("\n");
+                sb.append(" TotalPrivateDirty: ").append(pidMemoryInfo.getTotalPrivateDirty()).append("\n");
+                sb.append(" TotalSharedDirty: ").append(pidMemoryInfo.getTotalSharedDirty()).append("\n");
+            }
+        }
+        mCommandUtil.dumpToFile(sb, meminfoFile);
+    }
+
+    private long roundToKB(long raw) {
+        return Math.round(raw / 1000);
+    }
+
+
+    private void showDescriptionDialogOrToast(String file) {
         boolean isShow = mCommandUtil.getBooleanState(StartAtraceActivity.MENU_SHOW_DIALOG, false);
         String toast = pathToast + sDesiredStoragePath + "/";
         if (isShow) {
@@ -547,7 +609,7 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
 
     private float distance(float x1, float y1, float x2, float y2) {
         float dx = x1 - x2;
-        float dy = y1 -y2;
+        float dy = y1 - y2;
         // Euclidean distance: a^2+b^2=c^2
         float distanceInPx = FloatMath.sqrt(dx * dx + dy * dy);
         return pxToDp(distanceInPx);
@@ -563,6 +625,7 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
         getApplicationContext().startActivity(i);
     }
 
+    @Deprecated
     private void createNotification() {
         Context cx = getApplicationContext();
 //        Resources res = getApplicationContext().getResources();
@@ -574,9 +637,9 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
                 PendingIntent.FLAG_CANCEL_CURRENT);
 
         Notification.Builder builder = new Notification.Builder(cx)
-            .setSmallIcon(R.drawable.btn_assistivetouch_enable)
-            .setContentTitle(getString(R.string.notify_show_dialog_title))
-            .setContentText(getString(R.string.notify_show_dialog_text));
+                .setSmallIcon(R.drawable.btn_assistivetouch_enable)
+                .setContentTitle(getString(R.string.notify_show_dialog_title))
+                .setContentText(getString(R.string.notify_show_dialog_text));
         builder.setContentIntent(pendingIntent);
         builder.setAutoCancel(true);
         mNotificationManager.notify(DIALOG_NOTIFICATION_ID, builder.build());
@@ -589,7 +652,7 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
                 try {
                     String info = mCommandUtil.exec(SP_CMD_PS_FLAG).trim();
                     // if info has error number format, return false
-                    if (info != null && !info.isEmpty()) {
+                    if (!info.isEmpty()) {
                         sShowPsInfo = Integer.parseInt(info) != 0;
                         CommandUtil.myLogger(TAG, "prepareProperty: sShowPsInfo= " + sShowPsInfo);
                     } else {
@@ -620,11 +683,12 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
             mCallback = activity;
         }
 
+        @SuppressWarnings("deprecation")
         public void removeCallback() {
             mCallback = null;
         }
 
-        public boolean getUIState () {
+        public boolean getUIState() {
             CommandUtil.myLogger(TAG, "getUIState: " + mActivityUIState);
             return mActivityUIState;
         }

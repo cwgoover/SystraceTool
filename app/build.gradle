@@ -18,6 +18,7 @@ android {
     }
 }
 
-//dependencies {
+dependencies {
 //    compile 'com.android.support:appcompat-v7:19.1.0'
-//}
+    compile 'com.jaredrummler:android-processes:1.0.7'
+}

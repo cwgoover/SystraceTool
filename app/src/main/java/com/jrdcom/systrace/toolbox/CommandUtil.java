@@ -11,8 +11,10 @@ import com.jrdcom.systrace.StartAtraceActivity;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -185,7 +187,7 @@ public class CommandUtil {
             BufferedReader bufferedReader = new BufferedReader(reader);
             int numRead;
             char[] buffer = new char[5000];
-            StringBuffer commandOutput = new StringBuffer();
+            StringBuilder commandOutput = new StringBuilder();
             while ((numRead = bufferedReader.read(buffer)) > 0) {
                 commandOutput.append(buffer, 0, numRead);
             }
@@ -201,6 +203,29 @@ public class CommandUtil {
 //            throw new RuntimeException(e);
             Log.e(TAG, "\n\n\t\tCOMMAND InterruptedException: " + Arrays.toString(command));
             return null;
+        }
+    }
+
+    /**
+     * What is the most efficient/elegant way to dump a StringBuilder to a text file?
+     *   http://stackoverflow.com/questions/1677194/dumping-a-java-stringbuilder-to-file
+     * answered: NawaMan, rob
+     *
+     * @param sb    the context of the dump information
+     * @param meminfoFile   the output file path
+     */
+    public void dumpToFile(StringBuilder sb, String meminfoFile) {
+        File file = new File(meminfoFile);
+        BufferedWriter writer = null;
+        try {
+            writer = new BufferedWriter(new FileWriter(file));
+            writer.write(sb.toString());
+        } catch (IOException e) {
+            Log.e(TAG, "dumpToFile fail!");
+        } finally {
+            try {
+                if (writer != null) writer.close();
+            } catch (IOException e) {Log.e(TAG, "dumpToFile fail when closing writer!");}
         }
     }
 

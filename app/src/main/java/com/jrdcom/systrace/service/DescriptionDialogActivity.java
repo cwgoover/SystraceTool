@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.TextView;
 
 import com.jrdcom.systrace.R;
 
@@ -23,7 +24,7 @@ import java.io.Writer;
  * Created by tcao on 2/26/16.
  * Dialog Activity used to show dialog from service
  */
-public class DescriptionDialogActivity extends Activity{
+public class DescriptionDialogActivity extends Activity {
     public static final String TAG = DescriptionDialogActivity.class.getSimpleName();
     public static final String FILE_KEY = "DESCRIP_FILE_NAME";
     public static final String TOAST_KEY = "TOAST_CONTENT";
@@ -32,21 +33,24 @@ public class DescriptionDialogActivity extends Activity{
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         final String file = getIntent().getStringExtra(FILE_KEY);
-        // TODO: add the toast in the dialog!AnA
-        String toast = getIntent().getStringExtra(TOAST_KEY);
-        // change Dialog style to Holo theme
-        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.AppTheme_DialogTheme);
 
         View descriptionView = LayoutInflater.from(this).inflate(R.layout.show_description, null);
         final EditText edittext = (EditText) descriptionView.findViewById(R.id.user_input);
+        // add the toast in the dialog
+        TextView toastView = (TextView) descriptionView.findViewById(R.id.toast_id);
+        String toast = getIntent().getStringExtra(TOAST_KEY);
+        toastView.setText(String.format("Tips: %s", toast));
 
+
+        // change Dialog style to Holo theme
+        AlertDialog.Builder builder = new AlertDialog.Builder(this, R.style.AppTheme_DialogTheme);
         builder.setTitle(R.string.descrip_alert_title);
         builder.setView(descriptionView);
         builder.setCancelable(false);
         builder.setPositiveButton(R.string.alert_ok, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                // TODO: use checkbox & edittext for description
+                // Note: convert CharSequence to String with toString() method
                 final String userInput = edittext.getText().toString();
                 if (file != null && !userInput.isEmpty()) {
                     SaveUserFeedbackTask saveTask = new SaveUserFeedbackTask();

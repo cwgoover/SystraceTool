@@ -10,16 +10,15 @@
     <string name="command_fail_toast">执行失败!</string>
     <string name="path_toast">systrace文件保存在: </string>
     <string name="action_about">设置</string>
-    <string name="notif_show_title">Click to show Systrace</string>
-    <string name="notif_show_text">Show hidden icon to catch systrace.</string>
+    <string name="notif_show_title">点击显示Systrace</string>
+    <string name="notif_show_text">显示隐藏图标抓取systrace.</string>
 
     <!-- for time interval -->
     <string name="time_interval">执行时间:</string>
     <string name="default_interval">15</string>
     <string name="interval_unit">秒 + 15秒 (TOP)</string>
-    <string name="descrip_alert_message">Enter your Description:</string>
-    <string name="alert_cancel">Cancel</string>
-    <string name="alert_ok">OK</string>
-    <string name="dlg_write_title">The description of this trace\'s user behavior is below:\n</string>
-    <string name="menu_show_dialog">Show Dialog</string>
+    <string name="descrip_alert_message">请输入描述:</string>
+    <string name="alert_cancel">取消</string>
+    <string name="alert_ok">确定</string>
+    <string name="menu_show_dialog">显示描述对话框</string>
 </resources>

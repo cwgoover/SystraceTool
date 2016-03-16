@@ -8,11 +8,13 @@ gen
 .settings
 
 #IntelliJ IDEA
+.gradle
 .idea
+/app/build
+/captures
 *.iml
 *.ipr
 *.iws
-out
 
 #Maven
 target
