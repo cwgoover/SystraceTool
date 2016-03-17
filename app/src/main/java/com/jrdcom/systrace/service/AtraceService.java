@@ -4,15 +4,20 @@ package com.jrdcom.systrace.service;
 import android.animation.ValueAnimator;
 import android.app.ActivityManager;
 import android.app.ActivityManager.MemoryInfo;
+import android.app.AppOpsManager;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.app.usage.UsageStats;
+import android.app.usage.UsageStatsManager;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.os.Binder;
@@ -24,6 +29,7 @@ import android.os.IBinder;
 import android.os.PowerManager;
 import android.os.Vibrator;
 import android.preference.PreferenceManager;
+import android.provider.Settings;
 import android.util.DisplayMetrics;
 import android.util.FloatMath;
 import android.util.Log;
@@ -47,6 +53,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
 import java.util.TreeMap;
 
 public class AtraceService extends Service implements OnSharedPreferenceChangeListener {
@@ -94,7 +101,7 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
     private static final String HEAP_SIZE_MEDIUM = "5120";    // 5MB
     private static final String HEAP_SIZE_HIGH = "10240";       //10MB
 
-    private final List<String> mAtraceCmd = new ArrayList<String>();
+    private final List<String> mAtraceCmd = new ArrayList<>();
 
     private NotificationManager mNotificationManager;
     private WindowManager mWindowManager;
@@ -542,15 +549,19 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
         mActivityManager.getMemoryInfo(memInfo);
 
         // StringBuilder is faster than StringBuffer because StringBuffer is synchronized, StringBuilder is not.
+        //  The default size(384 param) used if you don't specify one is 16 characters, which is usually too small and results
+        // in the StringBuilder having to do reallocation to make itself bigger
+        //StringBuilder sb = new StringBuilder(384);
+        // This sb is too big, so use default size to reallocate.
         StringBuilder sb = new StringBuilder();
         sb.append("Applications Memory Usage (kB):\n");
-        sb.append(" TotalMem:   ").append(roundToKB(memInfo.totalMem) ).append(" kB\n");
+        sb.append(" TotalMem:   ").append(roundToKB(memInfo.totalMem)).append(" kB\n");
         sb.append(" AvailMem:   ").append(roundToKB(memInfo.availMem)).append(" kB\n");
         sb.append(" Threshold:  ").append(roundToKB(memInfo.threshold)).append(" kB\n");
         sb.append(" LowMemory:  ").append(memInfo.lowMemory).append("\n\n");
 
         List<ActivityManager.RunningAppProcessInfo> runningAppProcesses;
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
             // getRunningAppProcesses() returns my application package only in Android 5.1.1 and above
             runningAppProcesses = mActivityManager.getRunningAppProcesses();
         } else {
@@ -559,7 +570,8 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
             runningAppProcesses = ProcessManager.getRunningAppProcessInfo(getApplicationContext());
         }
 
-        Map<Integer, String> pidMap = new TreeMap<Integer, String>();
+        // Warning: Explicit type argument Integer, String can be replaced with <>
+        Map<Integer, String> pidMap = new TreeMap<>();
         for (ActivityManager.RunningAppProcessInfo runningAppProcessInfo : runningAppProcesses) {
             pidMap.put(runningAppProcessInfo.pid, runningAppProcessInfo.processName);
         }
@@ -691,6 +703,71 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
         public boolean getUIState() {
             CommandUtil.myLogger(TAG, "getUIState: " + mActivityUIState);
             return mActivityUIState;
+        }
+    }
+
+    /**
+     * Here's an exact solution to get current top activity on your Android L/Lollipop & Android M/Marshmallow devices.
+     * http://stackoverflow.com/a/33968978
+     * <p/>
+     * Use Comparator<UsageStats> to sort Collections.
+     * http://stackoverflow.com/a/27304318
+     */
+    @SuppressWarnings("unused")
+    private void getTopActivityFromLolipopOnwards() {
+        if (needPermissionForBlocking()) {
+            // open "Apps with usage access" to check whether allow usage access
+            mHandler.post(new Runnable() {
+                @Override
+                public void run() {
+                    Intent intent = new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS);
+                    // E/AndroidRuntime: FATAL EXCEPTION: main
+                    // android.util.AndroidRuntimeException: Calling startActivity() from outside of an Activity
+                    // context requires the FLAG_ACTIVITY_NEW_TASK flag. Is this really what you want?
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                }
+            });
+        } else {
+            // get current top activity on Android L+
+            String topPackageName;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                /**
+                 * 1. UsageStatsManager was added in API Level 21; you need to be compiling against
+                 *    API Level 21 to reference that class. So Set your compileSdkVersion to 21 or higher
+                 *    in your build.gradle file
+                 * 2. Can't use "getSystemService(Context.USAGE_STATS_SERVICE)"
+                 *    Must be some kind of bug in Android Studio. You can disable inspection by adding:
+                 *    context.getSystemService("usagestats")
+                 */
+                UsageStatsManager mUsageStatsManager = (UsageStatsManager) getSystemService("usagestats");
+                long time = System.currentTimeMillis();
+                // We get usage stats for the last 10 seconds
+                List<UsageStats> stats = mUsageStatsManager.queryUsageStats(UsageStatsManager.INTERVAL_DAILY, time - 1000 * 10, time);
+                // Sort the stats by the last time used
+                if (stats != null) {
+                    SortedMap<Long, UsageStats> mySortedMap = new TreeMap<>();
+                    for (UsageStats usageStats : stats) {
+                        mySortedMap.put(usageStats.getLastTimeUsed(), usageStats);
+                    }
+                    if (!mySortedMap.isEmpty()) {
+                        topPackageName = mySortedMap.get(mySortedMap.lastKey()).getPackageName();
+                        Log.i(TAG, "********** : TopPackage name: " + topPackageName);
+                    }
+                }
+            }
+        }
+    }
+
+    private boolean needPermissionForBlocking() {
+        try {
+            PackageManager packageManager = getPackageManager();
+            ApplicationInfo applicationInfo = packageManager.getApplicationInfo(getPackageName(), 0);
+            AppOpsManager appOpsManager = (AppOpsManager) getSystemService(Context.APP_OPS_SERVICE);
+            int mode = appOpsManager.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, applicationInfo.uid, applicationInfo.packageName);
+            return (mode != AppOpsManager.MODE_ALLOWED);
+        } catch (PackageManager.NameNotFoundException e) {
+            return true;
         }
     }
 }
