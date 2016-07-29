@@ -1,5 +1,5 @@
 
-package com.jrdcom.systrace.service;
+package com.cwgoover.systrace.service;
 
 import android.animation.ValueAnimator;
 import android.app.ActivityManager;
@@ -43,11 +43,12 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.jaredrummler.android.processes.ProcessManager;
-import com.jrdcom.systrace.R;
-import com.jrdcom.systrace.StartAtraceActivity;
-import com.jrdcom.systrace.toolbox.CommandUtil;
+import com.cwgoover.systrace.R;
+import com.cwgoover.systrace.StartAtraceActivity;
+import com.cwgoover.systrace.toolbox.CommandUtil;
 
 import java.io.File;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -65,6 +66,12 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
     public static final int ANIMATION_DURATION = 350;
     public static final int LONG_CLICK_DURATION = 1000;
     public static final String DEFAULT_SYSTRACE_SUBDIR = "/jrdSystrace";
+
+    /**
+     * we need to know whether running on a rooted device
+     */
+    private static final String SYSTEM_PROPERTY_DEBUGGABLE = "ro.debuggable";
+    private static final String SYSTEM_PROPERTY_SECURE = "ro.secure";
 
     /**
      * Max allowed duration for a "click", in milliseconds
@@ -92,10 +99,12 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
     private static final String[] TOP_CMD = {"/system/bin/top", "-t", "-d", "1", "-m", "25", "-n", "10"};
 
     private static final String[] RUN_ATRACE_0 = {"/system/bin/atrace", "-z", "-t"};
-    private static final String[] RUN_ATRACE_1 = {"gfx", "input", "view", "am", "wm", "sm", "res",
-            "dalvik", "sched", "freq", "app", "power",
-            "hal", "rs", "webview", "audio", "video", "camera",
-            "bionic", "idle", "load"};
+    private static final String[] RUN_ATRACE_USER_1 = {"gfx", "input", "view", "webview", "am", "wm", "sm",
+            "audio", "video", "camera", "hal", "app", "res", "dalvik", "rs", "hwui", "perf",
+            "bionic", "power", "sched", "freq", "idle", "load"};
+    private static final String[] RUN_ATRACE_ENG_1 = {"gfx", "input", "view", "webview", "am", "wm", "sm",
+            "audio", "video", "camera", "hal", "app", "res", "dalvik", "rs", "hwui", "perf", "bionic", "power",
+            "sched", "irq", "freq", "idle", "disk", "mmc", "load", "sync", "workq", "memreclaim", "regulators"};
 
     private static final String HEAP_SIZE_LOW = "2048";     // 2MB
     private static final String HEAP_SIZE_MEDIUM = "5120";    // 5MB
@@ -173,7 +182,17 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
          *  list, and use addAll to add elements to it.
          */
         mPreAtrace = Arrays.asList(RUN_ATRACE_0);
-        mPostAtrace = Arrays.asList(RUN_ATRACE_1);
+
+        String isDebuggable = getSystemProperty(SYSTEM_PROPERTY_DEBUGGABLE);
+        String isSecure = getSystemProperty(SYSTEM_PROPERTY_SECURE);
+        CommandUtil.myLogger(TAG, "prepareProperty: ro.debuggable= " + isDebuggable
+                + ", ro.secure=" + isSecure);
+        boolean hasRootPermission = "1".equals(isDebuggable) && "0".equals(isSecure);
+        if (hasRootPermission) {
+            mPostAtrace = Arrays.asList(RUN_ATRACE_ENG_1);
+        } else {
+            mPostAtrace = Arrays.asList(RUN_ATRACE_USER_1);
+        }
 
         // set this as foreground service
         setPriorityToForeground(true);
@@ -461,6 +480,7 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
      */
     private void runAtrace() {
         final File file = mCommandUtil.createFile(sDesiredStoragePath);
+        // TODO: change to run multiple threads in parallel
         Thread atraceThread = new Thread(new Runnable() {
             @Override
             public void run() {
@@ -474,6 +494,7 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
 
                 // set heap size of the atrace
                 mAtraceCmd.add("-b");
+                // TODO: need synchronized block?
                 String spHeapSize = mCommandUtil.exec(SP_HEAP_SIZE);
                 if (spHeapSize != null) spHeapSize = spHeapSize.trim();
                 if (spHeapSize != null && !spHeapSize.isEmpty() && !spHeapSize.equals("0")) {
@@ -679,6 +700,26 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
         });
         newThread.setName("get_property");
         newThread.start();
+    }
+
+    // How to use android.os.SystemProperites
+    // http://songxiaoming.com/android/2013/02/27/How-to-use-android.os.SystemProperties/
+    private String getSystemProperty(String cmd) {
+        String property = "";
+        ClassLoader cl = getClassLoader();
+        try {
+            Class<?> SystemProperties = cl.loadClass("android.os.SystemProperties");
+            // Parameters Types
+            Class[] paramTypes = {String.class};
+            Method get = SystemProperties.getMethod("get", paramTypes);
+
+            // Parameters
+            Object[] params = {cmd};
+            property = (String) get.invoke(SystemProperties, params);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return property;
     }
 
     private void showToast(String string) {

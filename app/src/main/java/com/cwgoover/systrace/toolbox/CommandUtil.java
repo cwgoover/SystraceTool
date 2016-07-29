@@ -1,4 +1,4 @@
-package com.jrdcom.systrace.toolbox;
+package com.cwgoover.systrace.toolbox;
 
 
 import android.content.Context;
@@ -6,7 +6,7 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
-import com.jrdcom.systrace.StartAtraceActivity;
+import com.cwgoover.systrace.StartAtraceActivity;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
@@ -61,7 +61,7 @@ public class CommandUtil {
     }
 
     public void setTimeInterval(String key, String val) {
-        mPerferences.edit().putString(key, val).commit();
+        mPerferences.edit().putString(key, val).apply();
     }
 
     public String getTimeInterval(String key) {
@@ -69,7 +69,7 @@ public class CommandUtil {
     }
 
     public void setBooleanState(String key, boolean val) {
-        mPerferences.edit().putBoolean(key, val).commit();
+        mPerferences.edit().putBoolean(key, val).apply();
     }
 
     public boolean getBooleanState(String key, boolean  defaultValue) {

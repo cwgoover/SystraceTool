@@ -1,4 +1,4 @@
-package com.jrdcom.systrace.service;
+package com.cwgoover.systrace.service;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -11,7 +11,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.jrdcom.systrace.R;
+import com.cwgoover.systrace.R;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -89,7 +89,7 @@ public class DescriptionDialogActivity extends Activity {
                 Log.e(TAG, "exception writing data to file", e);
                 e.printStackTrace();
             } finally {
-                try { writer.close();} catch (Exception e) {}
+                try { writer.close();} catch (Exception e) { /*do nothing*/}
             }
             return null;
         }

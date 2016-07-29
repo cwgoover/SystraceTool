@@ -1,5 +1,5 @@
 
-package com.jrdcom.systrace;
+package com.cwgoover.systrace;
 
 import android.app.Activity;
 import android.content.ComponentName;
@@ -22,8 +22,8 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import com.jrdcom.systrace.service.AtraceService;
-import com.jrdcom.systrace.toolbox.CommandUtil;
+import com.cwgoover.systrace.service.AtraceService;
+import com.cwgoover.systrace.toolbox.CommandUtil;
 
 public class StartAtraceActivity extends Activity
             implements OnClickListener, AtraceService.Callback {
