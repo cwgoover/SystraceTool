@@ -22,14 +22,13 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
-import com.cwgoover.systrace.service.AtraceService;
-import com.cwgoover.systrace.toolbox.CommandUtil;
+import com.cwgoover.systrace.toolbox.FileUtil;
 
 public class StartAtraceActivity extends Activity
-            implements OnClickListener, AtraceService.Callback {
+            implements OnClickListener, AtraceFloatView.Callback {
 
     public static final String TAG = "jrdSystrace";
-    public static final String SYSTRACE_SERVICE = "com.jrdcom.systrace.service.SystraceService";
+    public static final String SYSTRACE_SERVICE = "com.cwgoover.systrace.AtraceFloatView";
 
     public static final String TIME_INTERVAL = "time";
     public static final String ICON_SHOW = "iconShow";
@@ -39,9 +38,9 @@ public class StartAtraceActivity extends Activity
     Button mStopBtn;
     EditText mTimeInterval;
 
-    CommandUtil mUtil;
-    AtraceService.UIBinder mBinder;
-    AtraceService.Callback mCallback;
+    FileUtil mUtil;
+    AtraceFloatView.UIBinder mBinder;
+    AtraceFloatView.Callback mCallback;
 
     boolean mIsBindService;
 
@@ -51,7 +50,7 @@ public class StartAtraceActivity extends Activity
         setContentView(R.layout.activity_systrace);
 
         mCallback = this;
-        mUtil = CommandUtil.getInstance(this);
+        mUtil = FileUtil.getInstance(this);
 
         mStartBtn = (Button) findViewById(R.id.start);
         mStopBtn = (Button) findViewById(R.id.stop);
@@ -62,7 +61,7 @@ public class StartAtraceActivity extends Activity
         String savedTime = mUtil.getTimeInterval(TIME_INTERVAL);
         if (savedTime.isEmpty() || savedTime.equals("0")) {
             mUtil.setTimeInterval(TIME_INTERVAL, mTimeInterval.getText().toString());
-            CommandUtil.myLogger(TAG, "default setTimeInterval " + mTimeInterval.getText().toString());
+            FileUtil.myLogger(TAG, "default setTimeInterval " + mTimeInterval.getText().toString());
         }
         else {
             mTimeInterval.setText(savedTime);
@@ -74,7 +73,7 @@ public class StartAtraceActivity extends Activity
             @Override
             public void afterTextChanged(Editable s) {
                 String time = mTimeInterval.getText().toString();
-                CommandUtil.myLogger(TAG, "EditText change, the time=" + time);
+                FileUtil.myLogger(TAG, "EditText change, the time=" + time);
                 if (time.isEmpty() || time.equals("")) {
                     // Instead of try/catch for parseInt method.
                     mUtil.setTimeInterval(TIME_INTERVAL, time);
@@ -100,7 +99,7 @@ public class StartAtraceActivity extends Activity
     @Override
     protected void onResume() {
         super.onResume();
-        Intent intent = new Intent(this, AtraceService.class);
+        Intent intent = new Intent(this, AtraceFloatView.class);
         // flag : BIND_AUTO_CREATE (it will bind the service and start the service)
         // flag : 0 (method will return true and will not start service until a call
         //        like startService(Intent) is made to start the service)
@@ -178,13 +177,13 @@ public class StartAtraceActivity extends Activity
     @Override
     public void onClick(View v) {
         if (v == mStartBtn) {
-            Intent intent = new Intent(this, AtraceService.class);
+            Intent intent = new Intent(this, AtraceFloatView.class);
             startService(intent);
         }
         else if (v == mStopBtn) {
-            Intent intent = new Intent(this, AtraceService.class);
+            Intent intent = new Intent(this, AtraceFloatView.class);
             if (mIsBindService) {
-                CommandUtil.myLogger(TAG, "click stop button, and unbindService");
+                FileUtil.myLogger(TAG, "click stop button, and unbindService");
                 mIsBindService = false;
                 unbindService(connection);
             }
@@ -194,7 +193,7 @@ public class StartAtraceActivity extends Activity
 
     @Override
     public void notifyChange(boolean changed) {
-        CommandUtil.myLogger(TAG, "notifyChange: changed=" + changed);
+        FileUtil.myLogger(TAG, "notifyChange: changed=" + changed);
         updateUI(changed);
     }
 
@@ -214,8 +213,8 @@ public class StartAtraceActivity extends Activity
 
         @Override
         public void onServiceConnected(ComponentName name, IBinder service) {
-            mBinder = (AtraceService.UIBinder) service;
-            CommandUtil.myLogger(TAG, "onServiceConnected: create mBinder");
+            mBinder = (AtraceFloatView.UIBinder) service;
+            FileUtil.myLogger(TAG, "onServiceConnected: create mBinder");
             mBinder.setCallback(mCallback);
             updateUI(mBinder.getUIState());
         }

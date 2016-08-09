@@ -1,9 +1,7 @@
 
-package com.cwgoover.systrace.service;
+package com.cwgoover.systrace;
 
 import android.animation.ValueAnimator;
-import android.app.ActivityManager;
-import android.app.ActivityManager.MemoryInfo;
 import android.app.AppOpsManager;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -22,8 +20,6 @@ import android.graphics.PixelFormat;
 import android.graphics.Point;
 import android.os.Binder;
 import android.os.Build;
-import android.os.Debug;
-import android.os.Environment;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.PowerManager;
@@ -42,36 +38,21 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.Toast;
 
-import com.jaredrummler.android.processes.ProcessManager;
-import com.cwgoover.systrace.R;
-import com.cwgoover.systrace.StartAtraceActivity;
-import com.cwgoover.systrace.toolbox.CommandUtil;
+import com.cwgoover.systrace.toolbox.FileUtil;
 
 import java.io.File;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
-public class AtraceService extends Service implements OnSharedPreferenceChangeListener {
+public class AtraceFloatView extends Service implements OnSharedPreferenceChangeListener {
 
-    public static final String TAG = StartAtraceActivity.TAG + ".s";
+    public static final String TAG = StartAtraceActivity.TAG + ".view";
 
     public static final int ONGOING_NOTIFICATION_ID = 2018;
     public static final int DIALOG_NOTIFICATION_ID = 2015;
     public static final int ANIMATION_DURATION = 350;
     public static final int LONG_CLICK_DURATION = 1000;
-    public static final String DEFAULT_SYSTRACE_SUBDIR = "/jrdSystrace";
-
-    /**
-     * we need to know whether running on a rooted device
-     */
-    private static final String SYSTEM_PROPERTY_DEBUGGABLE = "ro.debuggable";
-    private static final String SYSTEM_PROPERTY_SECURE = "ro.secure";
 
     /**
      * Max allowed duration for a "click", in milliseconds
@@ -83,34 +64,7 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
      */
     private static final int MAX_CLICK_DISTANCE = 15;
 
-    private static boolean ENABLE_PS_CMD_RESQ = true;
-
-    private static String sDesiredStoragePath = null;
-    private static boolean sAtraceRunning = false;
     private static boolean sIconShowing = false;
-
-    // SystemProperty: PS cmd flag
-    private static final String[] SP_CMD_PS_FLAG = {"getprop", "persist.atrace.ps"};
-    // SystemProperty: heap size
-    private static final String[] SP_HEAP_SIZE = {"getprop", "persist.atrace.heapsize"};
-    // capture ps info
-    private static final String[] PS_CMD = {"/system/bin/ps"};
-    // capture top info
-    private static final String[] TOP_CMD = {"/system/bin/top", "-t", "-d", "1", "-m", "25", "-n", "10"};
-
-    private static final String[] RUN_ATRACE_0 = {"/system/bin/atrace", "-z", "-t"};
-    private static final String[] RUN_ATRACE_USER_1 = {"gfx", "input", "view", "webview", "am", "wm", "sm",
-            "audio", "video", "camera", "hal", "app", "res", "dalvik", "rs", "hwui", "perf",
-            "bionic", "power", "sched", "freq", "idle", "load"};
-    private static final String[] RUN_ATRACE_ENG_1 = {"gfx", "input", "view", "webview", "am", "wm", "sm",
-            "audio", "video", "camera", "hal", "app", "res", "dalvik", "rs", "hwui", "perf", "bionic", "power",
-            "sched", "irq", "freq", "idle", "disk", "mmc", "load", "sync", "workq", "memreclaim", "regulators"};
-
-    private static final String HEAP_SIZE_LOW = "2048";     // 2MB
-    private static final String HEAP_SIZE_MEDIUM = "5120";    // 5MB
-    private static final String HEAP_SIZE_HIGH = "10240";       //10MB
-
-    private final List<String> mAtraceCmd = new ArrayList<>();
 
     private NotificationManager mNotificationManager;
     private WindowManager mWindowManager;
@@ -118,24 +72,19 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
     private Vibrator mVibrator;
     private ImageView mFloatView;
 
-    List<String> mPreAtrace;
-    List<String> mPostAtrace;
     String unformatTimeInterval;
-    String runningToast;
     String failToast;
     String pathToast;
-    boolean mHasLongClicked = false;
     boolean stayedWithinClickDistance = false;
     boolean mActivityUIState = true;
     long touchStartTime;
     int mWindowWidth;
     String mTimeInterval;
-    static boolean sShowPsInfo;
 
-    private ActivityManager mActivityManager;
     private final UIBinder mBinder = new UIBinder();
     private Callback mCallback;
-    private CommandUtil mCommandUtil;
+    private TaskManager mTaskManager;
+    private FileUtil mUtil;
     private final Handler mHandler = new Handler();
 
     public interface Callback {
@@ -152,47 +101,26 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
         super.onCreate();
 
         unformatTimeInterval = getApplication().getResources().getString(R.string.unformat_time_interval);
-        runningToast = getApplication().getResources().getString(R.string.running_toast);
+//        runningToast = getApplication().getResources().getString(R.string.running_toast);
         failToast = getApplication().getResources().getString(R.string.command_fail_toast);
         pathToast = getApplication().getResources().getString(R.string.path_toast);
 
-        mActivityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
         SharedPreferences mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
         mPrefs.registerOnSharedPreferenceChangeListener(this);
 
+        mUtil = FileUtil.getInstance(this);
         mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        mCommandUtil = CommandUtil.getInstance(this);
+        mTaskManager = TaskManager.getInstance();
         mVibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         createFloatView();
 
-        prepareProperty();
-
-        sDesiredStoragePath = Environment.getExternalStorageDirectory().getPath() + DEFAULT_SYSTRACE_SUBDIR;
-        sIconShowing = mCommandUtil.getBooleanState(StartAtraceActivity.ICON_SHOW, true);
+        sIconShowing = mUtil.getBooleanState(StartAtraceActivity.ICON_SHOW, true);
 
         /** get Activity's widget in the service, used LayoutInflater instance.
          *  but it's the bad design, you should interact with UI in Activity not Service */
 //        LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
 //        View layout = inflater.inflate(R.layout.activity_systrace, null);
 //        EditText et = (EditText)layout.findViewById(R.id.interval);
-
-        /**
-         *  NOTE: The list returned by <br>Arrays.asList<br> is a fixed size list.
-         *  If you want to add something to the list, you would need to create another
-         *  list, and use addAll to add elements to it.
-         */
-        mPreAtrace = Arrays.asList(RUN_ATRACE_0);
-
-        String isDebuggable = getSystemProperty(SYSTEM_PROPERTY_DEBUGGABLE);
-        String isSecure = getSystemProperty(SYSTEM_PROPERTY_SECURE);
-        CommandUtil.myLogger(TAG, "prepareProperty: ro.debuggable= " + isDebuggable
-                + ", ro.secure=" + isSecure);
-        boolean hasRootPermission = "1".equals(isDebuggable) && "0".equals(isSecure);
-        if (hasRootPermission) {
-            mPostAtrace = Arrays.asList(RUN_ATRACE_ENG_1);
-        } else {
-            mPostAtrace = Arrays.asList(RUN_ATRACE_USER_1);
-        }
 
         // set this as foreground service
         setPriorityToForeground(true);
@@ -226,12 +154,12 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
                                           String key) {
 //        if (key.equals(StartAtraceActivity.TIME_INTERVAL)) {
-//            mTimeInterval = mCommandUtil.getTimeInterval(key);
-//            CommandUtil.myLogger(TAG, "onSharedPreferenceChanged: mTimeInterval=" + mTimeInterval);
+//            mTimeInterval = mUtil.getTimeInterval(key);
+//            FileUtil.myLogger(TAG, "onSharedPreferenceChanged: mTimeInterval=" + mTimeInterval);
 //        }
         if (key.equals(StartAtraceActivity.ICON_SHOW)) {
-            sIconShowing = mCommandUtil.getBooleanState(key, true);
-            CommandUtil.myLogger(TAG, "onSharedPreferenceChanged: sIconShowing=" + sIconShowing);
+            sIconShowing = mUtil.getBooleanState(key, true);
+            FileUtil.myLogger(TAG, "onSharedPreferenceChanged: sIconShowing=" + sIconShowing);
         }
     }
 
@@ -247,7 +175,7 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
         DisplayMetrics metrics = new DisplayMetrics();
         mWindowManager.getDefaultDisplay().getMetrics(metrics);
         if (metrics.densityDpi <= DisplayMetrics.DENSITY_HIGH) {
-            CommandUtil.myLogger(TAG, "In the low density device");
+            FileUtil.myLogger(TAG, "In the low density device");
             params.width = 70;
             params.height = 70;
         }
@@ -264,7 +192,6 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
         // deprecated after API level 13
 //        params.y = mWindowManager.getDefaultDisplay().getHeight() / 2;
 //        mWindowWidth = mWindowManager.getDefaultDisplay().getWidth();
-
 
         mFloatView = new ImageView(this);
         mFloatView.setImageResource(R.drawable.btn_assistivetouch_enable);
@@ -284,7 +211,7 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
                         initialY = paramsF.y;
                         initialTouchX = event.getRawX();
                         initialTouchY = event.getRawY();
-                        CommandUtil.myLogger(TAG, "ACTION_DOWN:"
+                        FileUtil.myLogger(TAG, "ACTION_DOWN:"
                                 + "  initialX=" + initialX
                                 + ", initialTouchX=" + initialTouchX
                                 + ", initialY=" + initialY
@@ -305,7 +232,7 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
                         // Gravity.BOTTOM makes the Y coordinate REVERSE! So we should *minus*
                         // the relative value to keep the same direction. (Gravity.TOP use *plus*)
                         paramsF.y = initialY - (int) (event.getRawY() - initialTouchY);
-                        CommandUtil.myLogger(TAG, "ACTION_MOVE:"
+                        FileUtil.myLogger(TAG, "ACTION_MOVE:"
                                 + " initialX=" + initialX
                                 + ", initialTouchX=" + initialTouchX
                                 + ", paramsF.x=" + paramsF.x
@@ -326,23 +253,18 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
                             // Click event has occurred, so play sound effect
                             v.playSoundEffect(SoundEffectConstants.CLICK);
 
-                            if (!sAtraceRunning) {
-                                // get the time directly from SharePreference.
-                                mTimeInterval = mCommandUtil.getTimeInterval(StartAtraceActivity.TIME_INTERVAL);
-                                if (mTimeInterval == null || mTimeInterval.length() == 0) {
-                                    showToast(unformatTimeInterval);
-                                    break;
-                                }
-                                CommandUtil.myLogger(TAG, "catch systrace now!");
-                                sAtraceRunning = true;
-                                freezeIcon(true, false);
-                                runAtrace();
-                            } else {
-                                showToast(runningToast);
+                            // get the time directly from SharePreference.
+                            mTimeInterval = mUtil.getTimeInterval(StartAtraceActivity.TIME_INTERVAL);
+                            if (mTimeInterval == null || mTimeInterval.length() == 0) {
+                                showToast(unformatTimeInterval);
+                                break;
                             }
+                            // Running atrace now!
+                            // NOTE: the parent object from inner class. "Class.this"
+                            mTaskManager.startAtrace(AtraceFloatView.this, mTimeInterval);
                         } else {
                             int endX = ((int) event.getRawX()) > mWindowWidth / 2 ? mWindowWidth : 0;
-                            CommandUtil.myLogger(TAG, "ACTION_UP: moving endX=" + endX);
+                            FileUtil.myLogger(TAG, "ACTION_UP: moving endX=" + endX);
                             overlayAnimation(mFloatView, paramsF.x, endX);
                         }
                         break;
@@ -366,11 +288,11 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
     final Runnable longClickRun = new Runnable() {
         @Override
         public void run() {
-            CommandUtil.myLogger(TAG, "longClickRun: launch activity");
+            FileUtil.myLogger(TAG, "longClickRun: launch activity");
             // Vibrate for 50 milliseconds
             mVibrator.vibrate(50);
 //            createNotification();
-//            AtraceService.this.stopSelf();
+//            AtraceFloatView.this.stopSelf();
             launchActivity();
         }
     };
@@ -409,8 +331,21 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
         }
     }
 
-    private void freezeIcon(boolean freeze, boolean finished) {
+    public void showUserInfo(boolean successful, File targetFile) {
+        if (!successful) {
+            showToast(failToast);
+        } else {
+            showDescriptionDialogOrToast(targetFile.getAbsolutePath() + ".txt");
+        }
+    }
+
+    public void updateIconState(boolean freeze, boolean finished) {
+        Log.d(TAG, "updateIconState: freeze="+freeze+", finished="+finished);
         if (freeze) {
+            // TODO: system can't sleep
+            // keep the screen on while catching systrace
+            mWakeLock.acquire();
+
             if (sIconShowing) {
                 if (finished) {
                     // Vibrate for 100 milliseconds
@@ -428,6 +363,11 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
             }
             updateActivityUI(false);
         } else {
+            // release wake lock
+            if (mWakeLock.isHeld()) {
+                FileUtil.myLogger(TAG, "release wake lock-");
+                mWakeLock.release();
+            }
             // Vibrate for 100 milliseconds
             mVibrator.vibrate(100);
             if (sIconShowing) {
@@ -442,7 +382,7 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
     }
 
     private void updateActivityUI(boolean enable) {
-        CommandUtil.myLogger(TAG, "updateActivityUI: enable=" + enable);
+        FileUtil.myLogger(TAG, "updateActivityUI: enable=" + enable);
         mActivityUIState = enable;
 
         if (mCallback != null) {
@@ -475,152 +415,10 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
         }
     }
 
-    /**
-     * catch Systrace output into SYSTRACE_PATH
-     */
-    private void runAtrace() {
-        final File file = mCommandUtil.createFile(sDesiredStoragePath);
-        // TODO: change to run multiple threads in parallel
-        Thread atraceThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                // keep the screen on while catching systrace
-                mWakeLock.acquire();
-
-                // prepare command
-                mAtraceCmd.clear();
-                mAtraceCmd.addAll(mPreAtrace);
-                mAtraceCmd.add(mTimeInterval);
-
-                // set heap size of the atrace
-                mAtraceCmd.add("-b");
-                // TODO: need synchronized block?
-                String spHeapSize = mCommandUtil.exec(SP_HEAP_SIZE);
-                if (spHeapSize != null) spHeapSize = spHeapSize.trim();
-                if (spHeapSize != null && !spHeapSize.isEmpty() && !spHeapSize.equals("0")) {
-                    CommandUtil.myLogger(TAG, "set heap size 0f system property:" + spHeapSize);
-                    mAtraceCmd.add(spHeapSize);
-                } else {
-                    int _timeInterval = Integer.parseInt(mTimeInterval);
-                    // Time interval is divided into 3 types:0~15,15~10,20~30
-                    if (_timeInterval <= 15) {
-                        mAtraceCmd.add(HEAP_SIZE_LOW);
-                    } else if (_timeInterval <= 20) {
-                        mAtraceCmd.add(HEAP_SIZE_MEDIUM);
-                    } else {
-                        mAtraceCmd.add(HEAP_SIZE_HIGH);
-                    }
-                }
-                mAtraceCmd.addAll(mPostAtrace);
-
-                // change List<String> to String[]
-                String[] command = new String[mAtraceCmd.size()];
-                final boolean isOK = mCommandUtil.runCommand(mAtraceCmd.toArray(command), file);
-
-                if (isOK) {
-                    // finish caught, so feedback this state.
-                    mHandler.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            freezeIcon(true, true);
-                        }
-                    });
-
-                    CommandUtil.myLogger(TAG, "runAtrace: success, now catch addition info!");
-                    // capture ps info from system device
-                    if (ENABLE_PS_CMD_RESQ || sShowPsInfo) {
-                        String ps_file = file.getAbsolutePath() + ".ps";
-                        mCommandUtil.runCommand(PS_CMD, new File(ps_file));
-                    }
-
-                    // capture top info from system device
-                    String top_file = file.getAbsolutePath() + ".top";
-                    mCommandUtil.runCommand(TOP_CMD, new File(top_file));
-
-                    // capture meminfo from system device
-                    String meminfo = file.getAbsolutePath() + ".mem";
-                    captureMeminfo(meminfo);
-                } else {
-                    mCommandUtil.deleteFile(file.toString());
-                }
-
-                mHandler.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        sAtraceRunning = false;
-                        freezeIcon(false, true);
-                        if (!isOK) {
-                            showToast(failToast);
-                        } else {
-                            showDescriptionDialogOrToast(file.getAbsolutePath() + ".txt");
-                        }
-                    }
-                });
-
-                // release wake lock
-                mWakeLock.release();
-            }
-        });
-        atraceThread.setName("atraceThread");
-        atraceThread.start();
-    }
-
-    private void captureMeminfo(String meminfoFile) {
-        MemoryInfo memInfo = new ActivityManager.MemoryInfo();
-        mActivityManager.getMemoryInfo(memInfo);
-
-        // StringBuilder is faster than StringBuffer because StringBuffer is synchronized, StringBuilder is not.
-        //  The default size(384 param) used if you don't specify one is 16 characters, which is usually too small and results
-        // in the StringBuilder having to do reallocation to make itself bigger
-        //StringBuilder sb = new StringBuilder(384);
-        // This sb is too big, so use default size to reallocate.
-        StringBuilder sb = new StringBuilder();
-        sb.append("Applications Memory Usage (kB):\n");
-        sb.append(" TotalMem:   ").append(roundToKB(memInfo.totalMem)).append(" kB\n");
-        sb.append(" AvailMem:   ").append(roundToKB(memInfo.availMem)).append(" kB\n");
-        sb.append(" Threshold:  ").append(roundToKB(memInfo.threshold)).append(" kB\n");
-        sb.append(" LowMemory:  ").append(memInfo.lowMemory).append("\n\n");
-
-        List<ActivityManager.RunningAppProcessInfo> runningAppProcesses;
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
-            // getRunningAppProcesses() returns my application package only in Android 5.1.1 and above
-            runningAppProcesses = mActivityManager.getRunningAppProcesses();
-        } else {
-            // package: https://github.com/jaredrummler/AndroidProcesses
-            // System apps aren't visible because they have a higher SELinux context than third party apps.
-            runningAppProcesses = ProcessManager.getRunningAppProcessInfo(getApplicationContext());
-        }
-
-        // Warning: Explicit type argument Integer, String can be replaced with <>
-        Map<Integer, String> pidMap = new TreeMap<>();
-        for (ActivityManager.RunningAppProcessInfo runningAppProcessInfo : runningAppProcesses) {
-            pidMap.put(runningAppProcessInfo.pid, runningAppProcessInfo.processName);
-        }
-
-        Collection<Integer> keys = pidMap.keySet();
-
-        for (int key : keys) {
-            int pids[] = new int[1];
-            pids[0] = key;
-            Debug.MemoryInfo[] memoryInfoArray = mActivityManager.getProcessMemoryInfo(pids);
-            for (Debug.MemoryInfo pidMemoryInfo : memoryInfoArray) {
-                sb.append(String.format("\n** MEMINFO in pid %d [%s] **\n", pids[0], pidMap.get(pids[0])));
-                sb.append(" TotalPss: ").append(pidMemoryInfo.getTotalPss()).append("\n");
-                sb.append(" TotalPrivateDirty: ").append(pidMemoryInfo.getTotalPrivateDirty()).append("\n");
-                sb.append(" TotalSharedDirty: ").append(pidMemoryInfo.getTotalSharedDirty()).append("\n");
-            }
-        }
-        mCommandUtil.dumpToFile(sb, meminfoFile);
-    }
-
-    private long roundToKB(long raw) {
-        return Math.round(raw / 1000);
-    }
-
-
     private void showDescriptionDialogOrToast(String file) {
-        boolean isShow = mCommandUtil.getBooleanState(StartAtraceActivity.MENU_SHOW_DIALOG, false);
-        String toast = pathToast + sDesiredStoragePath + "/";
+        boolean isShow = mUtil.getBooleanState(StartAtraceActivity.MENU_SHOW_DIALOG, false);
+        String filePath = file.substring(0, file.lastIndexOf(File.separator));
+        String toast = pathToast + filePath + File.separator;
         if (isShow) {
             Intent intent = new Intent(getApplicationContext(), DescriptionDialogActivity.class);
             intent.putExtra(DescriptionDialogActivity.FILE_KEY, file);
@@ -662,7 +460,7 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
     private void createNotification() {
         Context cx = getApplicationContext();
 //        Resources res = getApplicationContext().getResources();
-//        Intent notificationIntent = new Intent(cx, AtraceService.class);
+//        Intent notificationIntent = new Intent(cx, AtraceFloatView.class);
 //        PendingIntent pendingIntent = PendingIntent.getService(cx, 0, notificationIntent, 0);
         Intent notificationIntent = new Intent(cx, DescriptionDialogActivity.class);
         notificationIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
@@ -676,50 +474,6 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
         builder.setContentIntent(pendingIntent);
         builder.setAutoCancel(true);
         mNotificationManager.notify(DIALOG_NOTIFICATION_ID, builder.build());
-    }
-
-    private void prepareProperty() {
-        Thread newThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    String info = mCommandUtil.exec(SP_CMD_PS_FLAG).trim();
-                    // if info has error number format, return false
-                    if (!info.isEmpty()) {
-                        sShowPsInfo = Integer.parseInt(info) != 0;
-                        CommandUtil.myLogger(TAG, "prepareProperty: sShowPsInfo= " + sShowPsInfo);
-                    } else {
-                        sShowPsInfo = false;
-                    }
-                } catch (NumberFormatException e) {
-                    sShowPsInfo = false;
-                    CommandUtil.myLogger(TAG, "Error for prepareProperty: EXCEPTION!");
-                    e.printStackTrace();
-                }
-            }
-        });
-        newThread.setName("get_property");
-        newThread.start();
-    }
-
-    // How to use android.os.SystemProperites
-    // http://songxiaoming.com/android/2013/02/27/How-to-use-android.os.SystemProperties/
-    private String getSystemProperty(String cmd) {
-        String property = "";
-        ClassLoader cl = getClassLoader();
-        try {
-            Class<?> SystemProperties = cl.loadClass("android.os.SystemProperties");
-            // Parameters Types
-            Class[] paramTypes = {String.class};
-            Method get = SystemProperties.getMethod("get", paramTypes);
-
-            // Parameters
-            Object[] params = {cmd};
-            property = (String) get.invoke(SystemProperties, params);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return property;
     }
 
     private void showToast(String string) {
@@ -742,7 +496,7 @@ public class AtraceService extends Service implements OnSharedPreferenceChangeLi
         }
 
         public boolean getUIState() {
-            CommandUtil.myLogger(TAG, "getUIState: " + mActivityUIState);
+            FileUtil.myLogger(TAG, "getUIState: " + mActivityUIState);
             return mActivityUIState;
         }
     }

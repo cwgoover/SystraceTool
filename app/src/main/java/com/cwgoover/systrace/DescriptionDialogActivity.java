@@ -1,4 +1,4 @@
-package com.cwgoover.systrace.service;
+package com.cwgoover.systrace;
 
 import android.app.Activity;
 import android.app.AlertDialog;
@@ -11,8 +11,6 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.cwgoover.systrace.R;
-
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -21,8 +19,7 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 
 /**
- * Created by tcao on 2/26/16.
- * Dialog Activity used to show dialog from service
+ * Dialog Activity used to show dialog from AtraceFloatView
  */
 public class DescriptionDialogActivity extends Activity {
     public static final String TAG = DescriptionDialogActivity.class.getSimpleName();

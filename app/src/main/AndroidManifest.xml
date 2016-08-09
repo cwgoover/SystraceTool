@@ -30,7 +30,7 @@
         android:icon="@drawable/ic_launcher" >
 
         <activity
-            android:name="com.cwgoover.systrace.StartAtraceActivity"
+            android:name=".StartAtraceActivity"
             android:launchMode="singleTop"
             android:label="@string/app_name"
             android:icon="@drawable/ic_launcher"
@@ -42,14 +42,14 @@
         </activity>
 
         <service
-            android:name="com.cwgoover.systrace.service.AtraceService"
+            android:name=".AtraceFloatView"
             android:enabled="true" >
             <intent-filter>
-                <action android:name="com.jrdcom.systrace.service.SystraceService" />
+                <action android:name="com.cwgoover.systrace.service.AtraceFloatView" />
             </intent-filter>
         </service>
 
-        <activity android:name="com.cwgoover.systrace.service.DescriptionDialogActivity"
+        <activity android:name=".DescriptionDialogActivity"
             android:theme="@android:style/Theme.Translucent.NoTitleBar" >
             <intent-filter>
                 <action android:name="com.jrdcom.systrace.DescriptionDialogActivity" />
