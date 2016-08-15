@@ -341,11 +341,21 @@ public class AtraceFloatView extends Service implements OnSharedPreferenceChange
 
     public void updateIconState(boolean freeze, boolean finished) {
         Log.d(TAG, "updateIconState: freeze="+freeze+", finished="+finished);
+        // We should keep the screen on while capturing systrace.
         if (freeze) {
-            // TODO: system can't sleep
-            // keep the screen on while catching systrace
-            mWakeLock.acquire();
+            if (!finished) {
+                FileUtil.myLogger(TAG, "acquire wake lock-");
+                mWakeLock.acquire();
+            }
+        } else {
+            // release wake lock
+            if (mWakeLock.isHeld()) {
+                FileUtil.myLogger(TAG, "release wake lock-");
+                mWakeLock.release();
+            }
+        }
 
+        if (freeze) {
             if (sIconShowing) {
                 if (finished) {
                     // Vibrate for 100 milliseconds
@@ -363,11 +373,6 @@ public class AtraceFloatView extends Service implements OnSharedPreferenceChange
             }
             updateActivityUI(false);
         } else {
-            // release wake lock
-            if (mWakeLock.isHeld()) {
-                FileUtil.myLogger(TAG, "release wake lock-");
-                mWakeLock.release();
-            }
             // Vibrate for 100 milliseconds
             mVibrator.vibrate(100);
             if (sIconShowing) {
@@ -442,7 +447,7 @@ public class AtraceFloatView extends Service implements OnSharedPreferenceChange
         float dx = x1 - x2;
         float dy = y1 - y2;
         // Euclidean distance: a^2+b^2=c^2
-        float distanceInPx = FloatMath.sqrt(dx * dx + dy * dy);
+        float distanceInPx = (float)Math.sqrt((double)(dx * dx + dy * dy));
         return pxToDp(distanceInPx);
     }
 

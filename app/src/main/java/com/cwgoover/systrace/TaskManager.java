@@ -119,21 +119,20 @@ public class TaskManager implements TaskRunnableMethods {
                     break;
                 case SYSTRACE_FAILED:
                     name = "systraceFailed";
-                    stopAllThreads(false);
+                    stopTraceThreads(false);
                     msg = mHandler.obtainMessage(H.ENABLE_ICON);
                     msg.sendToTarget();
                     break;
                 case SYSTRACE_COMPLETE:
                     name = "systraceComplete";
-                    stopAllThreads(true);
+                    stopTraceThreads(true);
                     msg = mHandler.obtainMessage(H.DISABLE_ICON);
                     msg.sendToTarget();
                     // capture global system info
                     mWorkThreadPool.execute(new GlobalProcessRunnable(this, mTargetFile));
                     break;
                 case TASK_COMPLETE:
-                    name = "SystemComplete";
-                    Log.d(TAG, "tcao: System Complete");
+                    name = "TaskComplete";
                     msg = mHandler.obtainMessage(H.ENABLE_ICON);
                     msg.sendToTarget();
                     // clear the queue.
@@ -146,7 +145,7 @@ public class TaskManager implements TaskRunnableMethods {
         }
     }
 
-    private void stopAllThreads(boolean isFinished) {
+    private void stopTraceThreads(boolean isFinished) {
         mTaskFinished = isFinished;
         stopVmstats();
         stopMeminfo();
@@ -160,18 +159,22 @@ public class TaskManager implements TaskRunnableMethods {
     }
 
     public void startAtrace(AtraceFloatView floatView, String timeInterval) {
-        // TODO: try catch mFloatView == null??
         mFloatView = floatView;
         FileUtil util = FileUtil.getInstance(floatView);
         mTargetFile = util.createTraceFile(mTargetPath);
-        FileUtil.myLogger(TAG, "catch systrace now!");
-        // capture atrace now
-        mWorkThreadPool.execute(new AtraceRunnable(mFloatView, this, mTargetFile, timeInterval));
-        // capture vmstats info in parallel
-        mVmstatsRunnable = new VmstatsRunnable(this, mTargetFile);
-        mWorkThreadPool.execute(mVmstatsRunnable);
-        // capture meminfo
-        mWorkThreadPool.execute(new MeminfoRunnable(mFloatView, this, mTargetFile));
+        if (mFloatView != null) {
+            FileUtil.myLogger(TAG, "catch systrace now!");
+            // capture atrace now
+            mWorkThreadPool.execute(new AtraceRunnable(mFloatView, this, mTargetFile, timeInterval));
+            // capture vmstats info in parallel
+            mVmstatsRunnable = new VmstatsRunnable(mFloatView, this, mTargetFile);
+            mWorkThreadPool.execute(mVmstatsRunnable);
+            // capture meminfo
+            mWorkThreadPool.execute(new MeminfoRunnable(mFloatView, this, mTargetFile));
+        } else {
+            Log.e(TAG, "Error: the instance of AtraceFloatView is null!!");
+        }
+
     }
 
     private void stopMeminfo() {

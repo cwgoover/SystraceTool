@@ -13,11 +13,9 @@ import com.jaredrummler.android.processes.ProcessManager;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
-import java.util.Collection;
 import java.util.Date;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.Locale;
 
 /**
  * Command: meminfo
@@ -74,6 +72,7 @@ public class MeminfoRunnable implements Runnable {
             sb.append(" LowMemory:  ").append(memInfo.lowMemory).append("\n\n");
             mUntil.dumpToFile(sb, meminfoFile);
 
+            SimpleDateFormat df = new SimpleDateFormat("HH:mm:ss.SSS", Locale.US);
             while (true) {
                 // Before continuing, checks to see that the Thread hasn't been
                 // interrupted
@@ -81,7 +80,6 @@ public class MeminfoRunnable implements Runnable {
                     throw new InterruptedException();
                 }
 
-                SimpleDateFormat df = new SimpleDateFormat("HH:mm:ss.SSS");
                 // reset the StringBuilder
                 sb.setLength(0);
                 sb.append("\nTime:").append(df.format(new Date())).append("\n");
@@ -97,19 +95,13 @@ public class MeminfoRunnable implements Runnable {
                 }
 
                 // Warning: Explicit type argument Integer, String can be replaced with <>
-                Map<Integer, String> pidMap = new TreeMap<>();
+//                Map<Integer, String> pidMap = new TreeMap<>();
                 for (ActivityManager.RunningAppProcessInfo runningAppProcessInfo : runningAppProcesses) {
-                    pidMap.put(runningAppProcessInfo.pid, runningAppProcessInfo.processName);
-                }
-
-                Collection<Integer> keys = pidMap.keySet();
-
-                for (int key : keys) {
-                    int pids[] = new int[1];
-                    pids[0] = key;
-                    Debug.MemoryInfo[] memoryInfoArray = mActivityManager.getProcessMemoryInfo(pids);
+                    int pid[] = new int[1];
+                    pid[0] = runningAppProcessInfo.pid;
+                    Debug.MemoryInfo[] memoryInfoArray = mActivityManager.getProcessMemoryInfo(pid);
                     for (Debug.MemoryInfo pidMemoryInfo : memoryInfoArray) {
-                        sb.append(String.format("\n** MEMINFO in pid %d [%s] **\n", pids[0], pidMap.get(pids[0])));
+                        sb.append(String.format(Locale.US, "\n** MEMINFO in pid %d [%s] **\n", pid[0], runningAppProcessInfo.processName));
                         sb.append(" TotalPss: ").append(pidMemoryInfo.getTotalPss()).append("\n");
                         sb.append(" TotalPrivateDirty: ").append(pidMemoryInfo.getTotalPrivateDirty()).append("\n");
                         sb.append(" TotalSharedDirty: ").append(pidMemoryInfo.getTotalSharedDirty()).append("\n\n");

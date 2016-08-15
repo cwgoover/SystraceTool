@@ -1,5 +1,6 @@
 package com.cwgoover.systrace.commands;
 
+import android.content.Context;
 import android.os.Process;
 
 import com.cwgoover.systrace.StartAtraceActivity;
@@ -22,9 +23,11 @@ public class VmstatsRunnable implements Runnable {
     final ShellChannel mShellChannel;
 
     private File mTargetFile;
+    private FileUtil mUntil;
 
-    public VmstatsRunnable(TaskRunnableMethods task, File dest) {
+    public VmstatsRunnable(Context context, TaskRunnableMethods task, File dest) {
         mShellChannel = new ShellChannel();
+        mUntil = FileUtil.getInstance(context);
         mTaskMethods = task;
         mTargetFile = dest;
     }
@@ -52,8 +55,14 @@ public class VmstatsRunnable implements Runnable {
 
         FileUtil.myLogger(TAG, "Thread: catch vmstats in the background");
         String vmstats_file = mTargetFile.getAbsolutePath() + ".vmstats";
-        mShellChannel.runCommand(VMSTATS_CMD, new File(vmstats_file));
 
+        // write title to the file first
+        StringBuilder sb = new StringBuilder();
+        sb.append("procs -----------memory---------- ---swap-- -----io---- -system-- ----cpu----\n");
+        mUntil.dumpToFile(sb, vmstats_file);
+
+        // write data to the file now
+        mShellChannel.runCommand(VMSTATS_CMD, new File(vmstats_file));
         FileUtil.myLogger(TAG, Thread.currentThread().getName() + " STOP!!");
     }
 }
