@@ -13,6 +13,8 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class AtraceRunnable implements Runnable {
 
@@ -23,21 +25,19 @@ public class AtraceRunnable implements Runnable {
      */
     private static final String SYSTEM_PROPERTY_DEBUGGABLE = "ro.debuggable";
     private static final String SYSTEM_PROPERTY_SECURE = "ro.secure";
+    private static final String SYSTEM_PROPERTY_PLATFROM = "gsm.version.baseband";
 
     // SystemProperty: heap size
-    private static final String[] SP_HEAP_SIZE = {"getprop", "persist.atrace.heapsize"};
+    private static final String[] PROP_HEAP_SIZE = {"getprop", "persist.atrace.heapsize"};
 
     private static final String[] RUN_ATRACE_0 = {"/system/bin/atrace", "-z", "-t"};
-    private static final String[] RUN_ATRACE_USER_1 = {"gfx", "input", "view", "webview", "am", "wm", "sm",
+    private static final String[] RUN_ATRACE_MTK_1 = {"gfx", "input", "view", "webview", "am", "wm", "sm",
             "audio", "video", "camera", "hal", "app", "res", "dalvik", "rs", "hwui", "perf",
             "bionic", "power", "sched", "freq", "idle", "load"};
 
-    // /system/bin/atrace -z -t 15 -b 2048 gfx input view webview am wm sm audio video camera hal app res dalvik
-    // rs hwui perf bionic power sched irq freq idle disk mmc load sync workq memreclaim regulators
-
-    private static final String[] RUN_ATRACE_ENG_1 = {"gfx", "input", "view", "webview", "am", "wm", "sm",
-            "audio", "video", "camera", "hal", "app", "res", "dalvik", "rs", "hwui", "perf", "bionic", "power",
-            "sched", "irq", "freq", "idle", "disk", "mmc", "load", "sync", "workq", "memreclaim", "regulators"};
+    private static final String[] RUN_ATRACE_QULCOM_1 = {"gfx", "input", "view", "webview", "am", "wm", "sm",
+            "audio", "video", "camera", "hal", "app", "res", "dalvik", "rs", "power",
+            "sched", "freq", "idle", "load"};
 
     private static final String HEAP_SIZE_LOW = "2048";     // 2MB
     private static final String HEAP_SIZE_MEDIUM = "5120";    // 5MB
@@ -68,17 +68,23 @@ public class AtraceRunnable implements Runnable {
          */
         mPreAtrace = Arrays.asList(RUN_ATRACE_0);
 
-        String isDebuggable = getSystemProperty(SYSTEM_PROPERTY_DEBUGGABLE);
-        String isSecure = getSystemProperty(SYSTEM_PROPERTY_SECURE);
-        FileUtil.myLogger(TAG, "prepareProperty: ro.debuggable= " + isDebuggable
-                + ", ro.secure=" + isSecure);
-        boolean hasRootPermission = "1".equals(isDebuggable) && "0".equals(isSecure);
-        if (hasRootPermission) {
-            // Otherwise, "command fail!"
-//            mPostAtrace = Arrays.asList(RUN_ATRACE_ENG_1);
-            mPostAtrace = Arrays.asList(RUN_ATRACE_USER_1);
+//        String isDebuggable = getSystemProperty(SYSTEM_PROPERTY_DEBUGGABLE);
+//        String isSecure = getSystemProperty(SYSTEM_PROPERTY_SECURE);
+//        FileUtil.myLogger(TAG, "prepareProperty: ro.debuggable= " + isDebuggable
+//                + ", ro.secure=" + isSecure);
+//        boolean hasRootPermission = "1".equals(isDebuggable) && "0".equals(isSecure);
+//        if (hasRootPermission) {
+//            // too many flags which need high permission caused the command fail!
+//        }
+
+        String platform = getSystemProperty(SYSTEM_PROPERTY_PLATFROM).trim();
+        // String.contains works with String, period. It doesn't work with regex.
+        // it simply checks for substring. So we used String.match method
+        Matcher matcher = Pattern.compile("^MSM\\d+\\.").matcher(platform);
+        if (matcher.find()) {
+            mPostAtrace = Arrays.asList(RUN_ATRACE_QULCOM_1);
         } else {
-            mPostAtrace = Arrays.asList(RUN_ATRACE_USER_1);
+            mPostAtrace = Arrays.asList(RUN_ATRACE_MTK_1);
         }
     }
 
@@ -97,7 +103,7 @@ public class AtraceRunnable implements Runnable {
             // set heap size of the atrace
             mAtraceCmd.add("-b");
 
-            String spHeapSize = mShellChannel.exec(SP_HEAP_SIZE);
+            String spHeapSize = mShellChannel.exec(PROP_HEAP_SIZE);
             if (spHeapSize != null) spHeapSize = spHeapSize.trim();
             if (spHeapSize != null && !spHeapSize.isEmpty() && !spHeapSize.equals("0")) {
                 FileUtil.myLogger(TAG, "set heap size 0f system property:" + spHeapSize);
