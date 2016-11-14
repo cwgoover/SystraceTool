@@ -2,7 +2,6 @@ package com.cwgoover.systrace.toolbox;
 
 
 import android.content.Context;
-import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
@@ -16,6 +15,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 public class FileUtil {
     public static final String TAG = StartAtraceActivity.TAG + ".c";
@@ -25,19 +25,24 @@ public class FileUtil {
     private static final String OUTPUT_FILE_PREFIX = "systrace_";
     private static final String OUTPUT_FILE_SUFFIX = ".trace";
 
-    private final Context mContext;
-    private final SharedPreferences mPerferences;
+    //FIXME: Do not place Android context classes in static fields (static reference to
+    //FIXME: FileUtil which has field mContext pointing to Context); this is a memory leak
+    //FIXME: (and also breaks Instant Run)
+    //FIXME: A static field will leak contexts!!!
+//    private final Context mContext;
+//    private final SharedPreferences mPerferences;
 
     private static FileUtil sInstance;
-    private FileUtil(Context context) {
-        mContext = context;
-//      SharedPreferences mPerferences = getPreferences(Context.MODE_PRIVATE);
-        mPerferences = PreferenceManager.getDefaultSharedPreferences(mContext);
-    }
+//    private FileUtil(Context context) {
+//        mContext = context;
+////      SharedPreferences mPerferences = getPreferences(Context.MODE_PRIVATE);
+//        mPerferences = PreferenceManager.getDefaultSharedPreferences(mContext);
+//    }
 
-    public static synchronized FileUtil getInstance (Context context) {
+    private FileUtil() {}
+    public static synchronized FileUtil getInstance () {
         if (sInstance == null) {
-            sInstance = new FileUtil(context);
+            sInstance = new FileUtil();
         }
         return sInstance;
     }
@@ -48,21 +53,21 @@ public class FileUtil {
         }
     }
 
-    public void setTimeInterval(String key, String val) {
-        mPerferences.edit().putString(key, val).apply();
+    public void setTimeInterval(Context ctx, String key, String val) {
+        PreferenceManager.getDefaultSharedPreferences(ctx).edit().putString(key, val).apply();
     }
 
-    public String getTimeInterval(String key) {
-        return mPerferences.getString(key, "0");
+    public String getTimeInterval(Context ctx, String key) {
+        return PreferenceManager.getDefaultSharedPreferences(ctx).getString(key, "0");
     }
 
-    public void setBooleanState(String key, boolean val) {
-        mPerferences.edit().putBoolean(key, val).apply();
+    public void setBooleanState(Context ctx, String key, boolean val) {
+        PreferenceManager.getDefaultSharedPreferences(ctx).edit().putBoolean(key, val).apply();
     }
 
-    public boolean getBooleanState(String key, boolean  defaultValue) {
+    public boolean getBooleanState(Context ctx, String key, boolean  defaultValue) {
         // the default true value is special for the "ICON_SHOW"
-        return mPerferences.getBoolean(key, defaultValue);
+        return PreferenceManager.getDefaultSharedPreferences(ctx).getBoolean(key, defaultValue);
     }
 
     public File createTraceFile(String path) {
@@ -72,7 +77,7 @@ public class FileUtil {
             filePath.mkdirs();
         }
 
-        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss.SSS");
+        SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss.SSS", Locale.US);
         String time= df.format(new Date());
         String fileName = OUTPUT_FILE_PREFIX + time + OUTPUT_FILE_SUFFIX;
         myLogger(TAG, "createTraceFile: name=" + fileName);
@@ -127,14 +132,14 @@ public class FileUtil {
      * <p></p>
      * @param filename the file in the asset directory.
      */
-    public void copyFromAssets(String filename) {
+    public void copyFromAssets(Context ctx, String filename) {
         myLogger(TAG, "Attempting to copy this file: " + filename);
         try {
-            InputStream ins = mContext.getAssets().open(filename);
+            InputStream ins = ctx.getAssets().open(filename);
             byte[] buffer = new byte[ins.available()];  //check
             ins.read(buffer);
             ins.close();
-            FileOutputStream fos = mContext.openFileOutput(filename, Context.MODE_PRIVATE);
+            FileOutputStream fos = ctx.openFileOutput(filename, Context.MODE_PRIVATE);
             fos.write(buffer);
             fos.close();
         } catch (IOException e) {

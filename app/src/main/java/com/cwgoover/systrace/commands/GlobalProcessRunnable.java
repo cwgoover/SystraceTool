@@ -25,8 +25,8 @@ public class GlobalProcessRunnable implements Runnable {
 
     private static boolean ENABLE_PS_CMD_RESQ = true;
 
-    final TaskRunnableMethods mTaskMethods;
-    final ShellChannel mShellChannel;
+    private final TaskRunnableMethods mTaskMethods;
+    private final ShellChannel mShellChannel;
 
     private File mTargetFile;
 

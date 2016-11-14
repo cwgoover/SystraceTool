@@ -20,11 +20,11 @@ public class ShellChannel {
 
     private Process mProcess = null;
 
-    enum OUTPUT {
-        STDOUT,
-        STDERR,
-        BOTH
-    }
+//    enum OUTPUT {
+//        STDOUT,
+//        STDERR,
+//        BOTH
+//    }
 
     /**
      * Use ProcessBuilder to execute shell command

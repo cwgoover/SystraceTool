@@ -23,8 +23,8 @@ public class AtraceRunnable implements Runnable {
     /**
      * we need to know whether running on a rooted device
      */
-    private static final String SYSTEM_PROPERTY_DEBUGGABLE = "ro.debuggable";
-    private static final String SYSTEM_PROPERTY_SECURE = "ro.secure";
+//    private static final String SYSTEM_PROPERTY_DEBUGGABLE = "ro.debuggable";
+//    private static final String SYSTEM_PROPERTY_SECURE = "ro.secure";
     private static final String SYSTEM_PROPERTY_PLATFROM = "gsm.version.baseband";
 
     // SystemProperty: heap size
@@ -43,16 +43,16 @@ public class AtraceRunnable implements Runnable {
     private static final String HEAP_SIZE_MEDIUM = "5120";    // 5MB
     private static final String HEAP_SIZE_HIGH = "10240";       //10MB
 
-    final List<String> mAtraceCmd = new ArrayList<>();
-    final TaskRunnableMethods mTaskMethods;
-    final ShellChannel mShellChannel;
+    private final List<String> mAtraceCmd = new ArrayList<>();
+    private final TaskRunnableMethods mTaskMethods;
+    private final ShellChannel mShellChannel;
 
     private Context mContext;
     private File mTargetFile;
     private String mTimeInterval;
 
-    List<String> mPreAtrace;
-    List<String> mPostAtrace;
+    private List<String> mPreAtrace;
+    private List<String> mPostAtrace;
 
     public AtraceRunnable(Context context, TaskRunnableMethods task, File file, String timeInterval) {
         mContext = context;
@@ -131,7 +131,7 @@ public class AtraceRunnable implements Runnable {
             mTaskMethods.handleCommandState(TaskManager.SYSTRACE_COMPLETE);
         } else {
             mTaskMethods.handleCommandState(TaskManager.SYSTRACE_FAILED);
-            FileUtil.getInstance(mContext).deleteFile(mTargetFile.toString());
+            FileUtil.getInstance().deleteFile(mTargetFile.toString());
         }
     }
 

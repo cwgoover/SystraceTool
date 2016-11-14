@@ -23,7 +23,7 @@ import java.util.Locale;
 public class MeminfoRunnable implements Runnable {
     public static final String TAG = StartAtraceActivity.TAG + ".mem";
 
-    final TaskRunnableMethods mTaskMethods;
+    private final TaskRunnableMethods mTaskMethods;
     private ActivityManager mActivityManager;
     private Context mContext;
     private FileUtil mUntil;
@@ -31,7 +31,7 @@ public class MeminfoRunnable implements Runnable {
 
     public MeminfoRunnable(Context context, TaskRunnableMethods task, File dest) {
         mActivityManager = (ActivityManager) context.getSystemService(Context.ACTIVITY_SERVICE);
-        mUntil = FileUtil.getInstance(context);
+        mUntil = FileUtil.getInstance();
         mContext = context;
         mTaskMethods = task;
         mTargetFile = dest;

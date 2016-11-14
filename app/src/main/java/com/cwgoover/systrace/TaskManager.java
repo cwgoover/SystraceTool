@@ -100,7 +100,7 @@ public class TaskManager implements TaskRunnableMethods {
     }
 
     // Creates a single static instance of TaskManager
-    public static TaskManager getInstance() {
+    static TaskManager getInstance() {
         if (sInstance == null) sInstance = new TaskManager();
         return sInstance;
     }
@@ -158,16 +158,16 @@ public class TaskManager implements TaskRunnableMethods {
         }
     }
 
-    public void startAtrace(AtraceFloatView floatView, String timeInterval) {
+    void startAtrace(AtraceFloatView floatView, String timeInterval) {
         mFloatView = floatView;
-        FileUtil util = FileUtil.getInstance(floatView);
+        FileUtil util = FileUtil.getInstance();
         mTargetFile = util.createTraceFile(mTargetPath);
         if (mFloatView != null) {
             FileUtil.myLogger(TAG, "catch systrace now!");
             // capture atrace now
             mWorkThreadPool.execute(new AtraceRunnable(mFloatView, this, mTargetFile, timeInterval));
             // capture vmstats info in parallel
-            mVmstatsRunnable = new VmstatsRunnable(mFloatView, this, mTargetFile);
+            mVmstatsRunnable = new VmstatsRunnable(this, mTargetFile);
             mWorkThreadPool.execute(mVmstatsRunnable);
             // capture meminfo
             mWorkThreadPool.execute(new MeminfoRunnable(mFloatView, this, mTargetFile));
@@ -196,7 +196,7 @@ public class TaskManager implements TaskRunnableMethods {
         static final int FREEZE_ICON = 1;
         static final int DISABLE_ICON = 2;
 
-        public H (Looper looper) {
+        H (Looper looper) {
             super(looper);
         }
 

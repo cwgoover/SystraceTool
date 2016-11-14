@@ -50,7 +50,7 @@ public class StartAtraceActivity extends Activity
         setContentView(R.layout.activity_systrace);
 
         mCallback = this;
-        mUtil = FileUtil.getInstance(this);
+        mUtil = FileUtil.getInstance();
 
         mStartBtn = (Button) findViewById(R.id.start);
         mStopBtn = (Button) findViewById(R.id.stop);
@@ -58,9 +58,9 @@ public class StartAtraceActivity extends Activity
         mStopBtn.setOnClickListener(this);
         mTimeInterval = (EditText) findViewById(R.id.interval);
 
-        String savedTime = mUtil.getTimeInterval(TIME_INTERVAL);
+        String savedTime = mUtil.getTimeInterval(this, TIME_INTERVAL);
         if (savedTime.isEmpty() || savedTime.equals("0")) {
-            mUtil.setTimeInterval(TIME_INTERVAL, mTimeInterval.getText().toString());
+            mUtil.setTimeInterval(this, TIME_INTERVAL, mTimeInterval.getText().toString());
             FileUtil.myLogger(TAG, "default setTimeInterval " + mTimeInterval.getText().toString());
         }
         else {
@@ -76,10 +76,10 @@ public class StartAtraceActivity extends Activity
                 FileUtil.myLogger(TAG, "EditText change, the time=" + time);
                 if (time.isEmpty() || time.equals("")) {
                     // Instead of try/catch for parseInt method.
-                    mUtil.setTimeInterval(TIME_INTERVAL, time);
+                    mUtil.setTimeInterval(getApplicationContext(), TIME_INTERVAL, time);
                 } else if(Integer.parseInt(time) <= 30) {
                     // The maximum time is 30 seconds
-                    mUtil.setTimeInterval(TIME_INTERVAL, time);
+                    mUtil.setTimeInterval(getApplicationContext(), TIME_INTERVAL, time);
                 } else {
                     // shake EditText & clear numbers & show toast
                     mTimeInterval.setText("");
@@ -124,7 +124,7 @@ public class StartAtraceActivity extends Activity
         getMenuInflater().inflate(R.menu.main, menu);
 
         // config show dialog menu
-        menu.findItem(R.id.action_show_dialog).setChecked(mUtil.getBooleanState(MENU_SHOW_DIALOG, false));
+        menu.findItem(R.id.action_show_dialog).setChecked(mUtil.getBooleanState(this, MENU_SHOW_DIALOG, false));
 
         // config Spinner menu
         final ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(
@@ -135,7 +135,7 @@ public class StartAtraceActivity extends Activity
             final Spinner spinner = (Spinner) view;
             spinner.setAdapter(adapter);
             // change spinner's default value
-            if (!mUtil.getBooleanState(ICON_SHOW, true)) {
+            if (!mUtil.getBooleanState(this, ICON_SHOW, true)) {
                 spinner.setSelection(1);
             }
             spinner.setOnItemSelectedListener(new Spinner.OnItemSelectedListener() {
@@ -146,10 +146,10 @@ public class StartAtraceActivity extends Activity
                         case R.id.menu_spinner:
                             switch (position) {
                                 case 0:
-                                    mUtil.setBooleanState(ICON_SHOW, true);
+                                    mUtil.setBooleanState(getApplicationContext(), ICON_SHOW, true);
                                     break;
                                 case 1:
-                                    mUtil.setBooleanState(ICON_SHOW, false);
+                                    mUtil.setBooleanState(getApplicationContext(),ICON_SHOW, false);
                                     break;
                             }
                     }
@@ -166,7 +166,7 @@ public class StartAtraceActivity extends Activity
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_show_dialog:
-                mUtil.setBooleanState(MENU_SHOW_DIALOG, !item.isChecked());
+                mUtil.setBooleanState(this, MENU_SHOW_DIALOG, !item.isChecked());
                 item.setChecked(!item.isChecked());
                 return true;
             default:

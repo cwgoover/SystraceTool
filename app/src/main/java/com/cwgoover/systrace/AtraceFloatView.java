@@ -27,7 +27,6 @@ import android.os.Vibrator;
 import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.util.DisplayMetrics;
-import android.util.FloatMath;
 import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
@@ -108,13 +107,13 @@ public class AtraceFloatView extends Service implements OnSharedPreferenceChange
         SharedPreferences mPrefs = PreferenceManager.getDefaultSharedPreferences(this);
         mPrefs.registerOnSharedPreferenceChangeListener(this);
 
-        mUtil = FileUtil.getInstance(this);
+        mUtil = FileUtil.getInstance();
         mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         mTaskManager = TaskManager.getInstance();
         mVibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         createFloatView();
 
-        sIconShowing = mUtil.getBooleanState(StartAtraceActivity.ICON_SHOW, true);
+        sIconShowing = mUtil.getBooleanState(this, StartAtraceActivity.ICON_SHOW, true);
 
         /** get Activity's widget in the service, used LayoutInflater instance.
          *  but it's the bad design, you should interact with UI in Activity not Service */
@@ -158,7 +157,7 @@ public class AtraceFloatView extends Service implements OnSharedPreferenceChange
 //            FileUtil.myLogger(TAG, "onSharedPreferenceChanged: mTimeInterval=" + mTimeInterval);
 //        }
         if (key.equals(StartAtraceActivity.ICON_SHOW)) {
-            sIconShowing = mUtil.getBooleanState(key, true);
+            sIconShowing = mUtil.getBooleanState(this, key, true);
             FileUtil.myLogger(TAG, "onSharedPreferenceChanged: sIconShowing=" + sIconShowing);
         }
     }
@@ -254,7 +253,7 @@ public class AtraceFloatView extends Service implements OnSharedPreferenceChange
                             v.playSoundEffect(SoundEffectConstants.CLICK);
 
                             // get the time directly from SharePreference.
-                            mTimeInterval = mUtil.getTimeInterval(StartAtraceActivity.TIME_INTERVAL);
+                            mTimeInterval = mUtil.getTimeInterval(getApplicationContext(), StartAtraceActivity.TIME_INTERVAL);
                             if (mTimeInterval == null || mTimeInterval.length() == 0) {
                                 showToast(unformatTimeInterval);
                                 break;
@@ -421,7 +420,7 @@ public class AtraceFloatView extends Service implements OnSharedPreferenceChange
     }
 
     private void showDescriptionDialogOrToast(String file) {
-        boolean isShow = mUtil.getBooleanState(StartAtraceActivity.MENU_SHOW_DIALOG, false);
+        boolean isShow = mUtil.getBooleanState(this, StartAtraceActivity.MENU_SHOW_DIALOG, false);
         String filePath = file.substring(0, file.lastIndexOf(File.separator));
         String toast = pathToast + filePath + File.separator;
         if (isShow) {
@@ -491,7 +490,7 @@ public class AtraceFloatView extends Service implements OnSharedPreferenceChange
 
     public class UIBinder extends Binder {
 
-        public void setCallback(Callback activity) {
+        void setCallback(Callback activity) {
             mCallback = activity;
         }
 
@@ -500,7 +499,7 @@ public class AtraceFloatView extends Service implements OnSharedPreferenceChange
             mCallback = null;
         }
 
-        public boolean getUIState() {
+        boolean getUIState() {
             FileUtil.myLogger(TAG, "getUIState: " + mActivityUIState);
             return mActivityUIState;
         }

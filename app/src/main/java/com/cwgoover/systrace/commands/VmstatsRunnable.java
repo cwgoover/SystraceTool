@@ -19,15 +19,15 @@ public class VmstatsRunnable implements Runnable {
     // capture vmstats info
     private static final String[] VMSTATS_CMD = {"/system/bin/vmstat", "-n", "1"};
 
-    final TaskRunnableMethods mTaskMethods;
-    final ShellChannel mShellChannel;
+    private final TaskRunnableMethods mTaskMethods;
+    private final ShellChannel mShellChannel;
 
     private File mTargetFile;
     private FileUtil mUntil;
 
-    public VmstatsRunnable(Context context, TaskRunnableMethods task, File dest) {
+    public VmstatsRunnable(TaskRunnableMethods task, File dest) {
         mShellChannel = new ShellChannel();
-        mUntil = FileUtil.getInstance(context);
+        mUntil = FileUtil.getInstance();
         mTaskMethods = task;
         mTargetFile = dest;
     }

@@ -86,7 +86,11 @@ public class DescriptionDialogActivity extends Activity {
                 Log.e(TAG, "exception writing data to file", e);
                 e.printStackTrace();
             } finally {
-                try { writer.close();} catch (Exception e) { /*do nothing*/}
+                try {
+                    if (writer != null) {
+                        writer.close();
+                    }
+                } catch (Exception e) { /*do nothing*/}
             }
             return null;
         }
