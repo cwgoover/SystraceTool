@@ -1,6 +1,8 @@
 # SystraceTool
 
-<img src="guide/img/systraceTool_screenshot.png" width="200" />
+<p align="center">
+<img src="guide/img/systraceTool_screenshot.png" width="300" />
+</p>
 
 This project aims to provide a Systrace tool in the Android, so that user can directly catch the Systrace file with app.
 Please note that it only based on **sdkVersion:20 or above** which can use atrace command for Android.
@@ -14,7 +16,9 @@ Please note that it only based on **sdkVersion:20 or above** which can use atrac
 This app focuses on capturing systrace data from handset directly, along with other system information, such as vmstat, meminfo, ps, top info.
 The below picture depicts the entire processing flow:
 
-<img src="guide/img/systrace_flowchart.png" width="600" />
+<p align="center">
+<img src="guide/img/systrace_flowchart.png" width="700" />
+</p>
 
 First of all, when user touch floating icon to ready for capturing systrace, the app starts off several new threads to get systrace, vmstat, meminfo information synchronously; and then, it starts off other thread to catch ps and top information after finished all the work mentioned as above.
 While all the threads run out, the floating icon change its status from freezing to original to mean that all the processes finished and the information have been attained.
