@@ -1,6 +1,5 @@
 package com.cwgoover.systrace.commands;
 
-import android.content.Context;
 import android.os.Process;
 
 import com.cwgoover.systrace.StartAtraceActivity;
@@ -59,6 +58,7 @@ public class VmstatsRunnable implements Runnable {
         // write title to the file first
         StringBuilder sb = new StringBuilder();
         sb.append("procs -----------memory---------- ---swap-- -----io---- -system-- ----cpu----\n");
+        sb.append(" r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa\n");
         mUntil.dumpToFile(sb, vmstats_file);
 
         // write data to the file now
